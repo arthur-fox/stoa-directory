@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏛️ Stoa Member Project Directory
 
-## Getting Started
+A public directory of Stoa community members and what they're building.
 
-First, run the development server:
+**Live site:** https://arthur-fox.github.io/stoa-directory/
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Adding or editing members
+
+All member data lives in [`data/members.json`](data/members.json). Each entry follows this shape:
+
+```json
+{
+  "id": "unique-id",
+  "slug": "firstname-lastname",
+  "name": "Full Name",
+  "avatar": null,
+  "bio": "Short bio.",
+  "location": "City, Country",
+  "social": {
+    "twitter": "handle",
+    "linkedin": "profile-slug",
+    "website": "https://..."
+  },
+  "tags": ["founder", "developer"],
+  "visibility": "public",
+  "projects": [
+    {
+      "id": "unique-id",
+      "title": "Project Name",
+      "description": "One line description.",
+      "url": "https://...",
+      "type": "saas",
+      "tags": ["ai", "productivity"],
+      "visibility": "public",
+      "status": "active",
+      "thumbnail": null,
+      "seekingFeedback": false
+    }
+  ]
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`visibility` can be `"public"` (visible to everyone) or `"community"` (reserved for the logged-in phase). Default to `"public"` for now.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`status` can be `"active"`, `"shipped"`, or `"wip"`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Edit the file and push to `main` — GitHub Actions will redeploy automatically.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Local development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000/stoa-directory](http://localhost:3000/stoa-directory).
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js 16** (App Router, static export)
+- **Tailwind CSS**
+- **GitHub Pages** via GitHub Actions
+
+---
+
+## Roadmap
+
+### Phase 1 — Static public showcase ✅
+Hand-curated member tiles, deployed to GitHub Pages. Data lives in `members.json`.
+
+### Phase 2 — Auth + member dashboard
+- Migrate data layer to **Supabase** (Postgres + Auth)
+- Members can log in and edit their own profile and projects
+- Visibility toggle per project (default: community-only)
+- Row-level security: members can only edit their own rows
+
+### Phase 3 — Feedback
+- Members can flag a project as "seeking feedback"
+- Structured feedback prompts (design, idea validation, growth, technical)
+- Feedback is community-only and public within Stoa
+
+### Phase 4 — Self-onboarding + search
+- Members can request to join and add themselves
+- Client-side search (Fuse.js)
+- Filter by tags and project type
