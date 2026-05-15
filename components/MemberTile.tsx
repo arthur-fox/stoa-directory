@@ -6,7 +6,7 @@ interface Props {
   member: Member;
 }
 
-function Avatar({ name, avatar }: { name: string; avatar?: string }) {
+function Avatar({ name, avatar }: { name: string; avatar?: string | null }) {
   if (avatar) {
     return (
       <img
