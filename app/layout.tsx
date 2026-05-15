@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stoa Member Directory",
+  title: "Stoa Member Project Directory",
   description: "Meet the people in our community and what they're building.",
 };
 

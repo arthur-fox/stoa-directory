@@ -14,13 +14,39 @@ const statusLabel: Record<string, string> = {
 
 interface Props {
   project: Project;
+  compact?: boolean;
 }
 
-export default function ProjectCard({ project }: Props) {
+export default function ProjectCard({ project, compact = false }: Props) {
   const Wrapper = project.url ? 'a' : 'div';
   const wrapperProps = project.url
     ? { href: project.url, target: '_blank', rel: 'noopener noreferrer' }
     : {};
+
+  if (compact) {
+    return (
+      <Wrapper
+        {...wrapperProps}
+        className="group flex items-center justify-between rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-1.5 transition-colors hover:border-zinc-200 hover:bg-white"
+      >
+        <span className="text-xs font-medium text-zinc-700 group-hover:text-black truncate">
+          {project.title}
+        </span>
+        <div className="ml-2 flex shrink-0 items-center gap-1">
+          {project.seekingFeedback && (
+            <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-xs font-medium text-violet-600">
+              Feedback
+            </span>
+          )}
+          <span
+            className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${statusStyles[project.status]}`}
+          >
+            {statusLabel[project.status]}
+          </span>
+        </div>
+      </Wrapper>
+    );
+  }
 
   return (
     <Wrapper
