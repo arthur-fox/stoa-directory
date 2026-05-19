@@ -100,6 +100,31 @@
     ]
   },
   {
+    "id": "6",
+    "slug": "maddie-grant",
+    "name": "Maddie Grant",
+    "avatar": null,
+    "bio": "Building tools at the intersection of astrology and everyday life.",
+    "location": null,
+    "social": {},
+    "tags": [],
+    "visibility": "public",
+    "projects": [
+      {
+        "id": "p6",
+        "title": "Moon Mansion",
+        "description": "A calculator for exploring moon mansions and their influence.",
+        "url": "http://moonmansioncalculator.com",
+        "type": "app",
+        "tags": ["astrology", "wellness"],
+        "visibility": "public",
+        "status": "active",
+        "thumbnail": null,
+        "seekingFeedback": false
+      }
+    ]
+  },
+  {
     "id": "5",
     "slug": "priyank-sharma",
     "name": "Priyank Sharma",
