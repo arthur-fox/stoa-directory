@@ -48,18 +48,37 @@ export default function DashboardPage() {
   const [newProject, setNewProject] = useState<Omit<Project, 'id'> | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.replace('/login'); return; }
       setUser(user);
-      supabase
+
+      // Primary lookup: by user_id (set by trigger on first sign-in)
+      let { data } = await supabase
         .from('members')
         .select('*, projects(*)')
         .eq('user_id', user.id)
-        .single()
-        .then(({ data }) => {
-          setMember(data);
-          setLoading(false);
-        });
+        .single();
+
+      // Fallback: look up by email and self-claim the row
+      if (!data && user.email) {
+        const { data: byEmail } = await supabase
+          .from('members')
+          .select('*, projects(*)')
+          .eq('email', user.email)
+          .is('user_id', null)
+          .single();
+        if (byEmail) {
+          // Claim the row — allowed by "Users can claim unlinked member row" RLS policy
+          await supabase
+            .from('members')
+            .update({ user_id: user.id })
+            .eq('id', byEmail.id);
+          data = { ...byEmail, user_id: user.id };
+        }
+      }
+
+      setMember(data);
+      setLoading(false);
     });
   }, [router]);
 
