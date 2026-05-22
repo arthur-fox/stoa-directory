@@ -26,8 +26,9 @@ export default function AdminPage() {
   const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) { router.replace('/login'); return; }
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) { router.replace('/login'); return; }
+      const user = session.user;
 
       const { data: me } = await supabase
         .from('members')

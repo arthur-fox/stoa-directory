@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Supabase one-off files containing PII (member emails etc.)
+# schema.sql and add_admin.sql are safe; add_members.sql is not
+supabase/add_members.sql

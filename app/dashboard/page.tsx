@@ -49,8 +49,9 @@ export default function DashboardPage() {
   const [newProject, setNewProject] = useState<Omit<Project, 'id'> | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) { router.replace('/login'); return; }
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) { router.replace('/login'); return; }
+      const user = session.user;
       setUser(user);
 
       // Primary lookup: by user_id (set by trigger on first sign-in)
