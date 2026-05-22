@@ -40,6 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Supabase one-off files containing PII (member emails etc.)
-# schema.sql and add_admin.sql are safe; add_members.sql is not
-supabase/add_members.sql
+# Supabase one-off migration/seed files (may contain PII like emails)
+# Commit schema.sql and add_admin.sql manually if needed; exclude everything else
+supabase/*.sql
+!supabase/schema.sql
+!supabase/add_admin.sql

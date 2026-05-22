@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const [saved, setSaved] = useState(false);
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [newProject, setNewProject] = useState<Omit<Project, 'id'> | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -55,31 +56,31 @@ export default function DashboardPage() {
       setUser(user);
 
       // Primary lookup: by user_id (set by trigger on first sign-in)
-      let { data } = await supabase
+      const { data, error } = await supabase
         .from('members')
-        .select('*, projects(*), is_admin')
+        .select('*, projects(*)')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (error) setLookupError(error.message);
+
       // Fallback: look up by email and self-claim the row
-      if (!data && user.email) {
-        const { data: byEmail } = await supabase
+      let resolved = data;
+      if (!resolved && user.email) {
+        const { data: byEmail, error: emailError } = await supabase
           .from('members')
-          .select('*, projects(*), is_admin')
-          .ilike('email', user.email)   // case-insensitive match
+          .select('*, projects(*)')
+          .ilike('email', user.email)
           .is('user_id', null)
-          .maybeSingle();               // returns null (not error) when 0 rows found
+          .maybeSingle();
+        if (emailError) setLookupError(prev => (prev ?? '') + ' | ' + emailError.message);
         if (byEmail) {
-          // Claim the row — allowed by "Users can claim unlinked member row" RLS policy
-          await supabase
-            .from('members')
-            .update({ user_id: user.id })
-            .eq('id', byEmail.id);
-          data = { ...byEmail, user_id: user.id };
+          await supabase.from('members').update({ user_id: user.id }).eq('id', byEmail.id);
+          resolved = { ...byEmail, user_id: user.id };
         }
       }
 
-      setMember(data);
+      setMember(resolved);
       setLoading(false);
     });
   }, [router]);
@@ -148,6 +149,7 @@ export default function DashboardPage() {
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-white">
         <p className="text-zinc-500 text-sm">No member profile linked to <strong>{user?.email}</strong>.</p>
         <p className="font-mono text-xs text-zinc-300">{user?.id}</p>
+        {lookupError && <p className="max-w-sm text-center font-mono text-xs text-red-400">{lookupError}</p>}
         <p className="text-xs text-zinc-400">Ask an admin to link your account.</p>
         <button onClick={signOut} className="mt-2 text-xs text-zinc-400 hover:text-zinc-700 underline">Sign out</button>
       </main>
