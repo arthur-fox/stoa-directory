@@ -118,10 +118,16 @@ export default function DashboardPage() {
   async function addProject() {
     if (!member || !newProject) return;
     setProjectError(null);
+    // Explicitly list fields — avoids sending id:'' that the form stores internally
     const { data, error } = await supabase.from('projects').insert({
-      ...newProject,
-      url: newProject.url || null,     // empty string → null
-      member_id: member.id,
+      member_id:        member.id,
+      title:            newProject.title,
+      description:      newProject.description,
+      url:              newProject.url || null,
+      status:           newProject.status,
+      visibility:       newProject.visibility,
+      seeking_feedback: newProject.seeking_feedback,
+      tags:             newProject.tags,
     }).select().maybeSingle();
     if (error) { setProjectError(error.message); return; }
     if (data) {
