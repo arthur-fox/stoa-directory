@@ -147,6 +147,7 @@ export default function DashboardPage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-white">
         <p className="text-zinc-500 text-sm">No member profile linked to <strong>{user?.email}</strong>.</p>
+        <p className="font-mono text-xs text-zinc-300">{user?.id}</p>
         <p className="text-xs text-zinc-400">Ask an admin to link your account.</p>
         <button onClick={signOut} className="mt-2 text-xs text-zinc-400 hover:text-zinc-700 underline">Sign out</button>
       </main>
