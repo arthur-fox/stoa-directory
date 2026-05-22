@@ -1,6 +1,7 @@
 -- ============================================================
 -- Stoa Member Project Directory — Supabase Schema
--- Run this once in the Supabase SQL editor
+-- Run this once in the Supabase SQL editor to set up tables and RLS.
+-- Seed data lives in separate gitignored SQL files.
 -- ============================================================
 
 -- Members table
@@ -15,6 +16,8 @@ create table members (
   tags        text[] default '{}',
   visibility  text default 'public' check (visibility in ('public', 'community')),
   user_id     uuid references auth.users(id),
+  email       text,
+  is_admin    boolean default false,
   created_at  timestamp with time zone default now()
 );
 
@@ -41,6 +44,28 @@ create table projects (
 alter table members enable row level security;
 alter table projects enable row level security;
 
+-- ============================================================
+-- Admin helper — security definer bypasses RLS to avoid
+-- infinite recursion when checking admin status
+-- ============================================================
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.members
+    where user_id = auth.uid()
+      and is_admin = true
+  );
+$$;
+
+-- ============================================================
+-- Members policies
+-- ============================================================
+
 -- Anyone can read public members
 create policy "Public members visible to all"
   on members for select
@@ -58,6 +83,24 @@ create policy "Members update own profile"
   to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- Users can claim an unclaimed member row matching their email
+create policy "Users can claim unlinked member row"
+  on members for update
+  to authenticated
+  using  (lower(email) = lower(auth.jwt() ->> 'email') and user_id is null)
+  with check (user_id = auth.uid());
+
+-- Admins can do anything
+create policy "Admins can manage all members"
+  on members for all
+  to authenticated
+  using  (public.is_admin())
+  with check (public.is_admin());
+
+-- ============================================================
+-- Projects policies
+-- ============================================================
 
 -- Anyone can read public projects
 create policy "Public projects visible to all"
@@ -81,29 +124,34 @@ create policy "Members manage own projects"
     member_id in (select id from members where user_id = auth.uid())
   );
 
--- ============================================================
--- Seed data — existing members
--- ============================================================
+-- Admins can do anything
+create policy "Admins can manage all projects"
+  on projects for all
+  to authenticated
+  using  (public.is_admin())
+  with check (public.is_admin());
 
-with inserted_members as (
-  insert into members (slug, name, bio, visibility) values
-    ('rex-mcintosh',  'Rex McIntosh',   'Building tech for swimmers.',                          'public'),
-    ('kyle-connel',   'Kyle Connel',    'Golf and software.',                                   'public'),
-    ('arthur-fox',    'Arthur Fox',     'Building at the intersection of finance and web3.',    'public'),
-    ('zeneca-roy',    'Zeneca Roy',     'Digital art, web3, and creative experiments.',         'public'),
-    ('priyank-sharma','Priyank Sharma', 'Researching and building in longevity and healthspan.','public'),
-    ('maddie-grant',  'Maddie Grant',   'Building tools at the intersection of astrology and everyday life.', 'public')
-  returning id, slug
-)
-insert into projects (member_id, title, description, url, type, tags, visibility, status, seeking_feedback)
-select m.id, p.title, p.description, p.url, p.type, p.tags, p.visibility, p.status, p.seeking_feedback
-from inserted_members m
-join (values
-  ('rex-mcintosh',   'Swimtrack',      'Training tracker built for competitive swimmers.',                   'https://swimtrack.ai',                      'app', array['fitness','ai'],          'public', 'active', false),
-  ('kyle-connel',    'Swingstakes',    'Competitive golf challenges with real stakes.',                      'https://swingstakes-six.vercel.app/',       'app', array['golf','gaming'],        'public', 'active', false),
-  ('arthur-fox',     'Yieldseeker',    'Find and compare yield opportunities across DeFi.',                  'https://yieldseeker.xyz',                   'app', array['defi','finance'],       'public', 'active', false),
-  ('zeneca-roy',     'Yoshi',          'A creative project exploring digital identity and expression.',      'https://yoshizen.co',                       'app', array['web3','creative'],      'public', 'active', false),
-  ('priyank-sharma', 'Longevity Lab',  'Tools and resources for tracking and improving healthspan.',         'https://longevity-lab-view.lovable.app/',   'app', array['health','longevity'],   'public', 'active', false),
-  ('maddie-grant',   'Moon Mansion',   'A calculator for exploring moon mansions and their influence.',      'http://moonmansioncalculator.com',          'app', array['astrology','wellness'], 'public', 'active', false)
-) as p(slug, title, description, url, type, tags, visibility, status, seeking_feedback)
-on m.slug = p.slug;
+-- ============================================================
+-- Auto-link trigger: when a user signs in via magic link,
+-- find the matching member row by email and set user_id
+-- ============================================================
+create or replace function public.link_member_on_signup()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.members
+  set user_id = new.id
+  where lower(email) = lower(new.email)
+    and user_id is null;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row
+  execute procedure public.link_member_on_signup();

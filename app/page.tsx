@@ -37,18 +37,25 @@ function toMember(row: Record<string, unknown>): Member {
 export default function Home() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    async function fetchMembers() {
-      const { data } = await supabase
-        .from('members')
-        .select('*, projects(*)')
-        .eq('visibility', 'public')
-        .order('created_at');
-      setMembers((data ?? []).map(toMember));
+    async function init() {
+      const [{ data: { session } }, { data: membersData }] = await Promise.all([
+        supabase.auth.getSession(),
+        supabase.from('members').select('*, projects(*)').eq('visibility', 'public').order('created_at'),
+      ]);
+      setLoggedIn(!!session);
+      setMembers((membersData ?? []).map(toMember));
       setLoading(false);
     }
-    fetchMembers();
+    init();
+
+    // Keep nav in sync if the user signs in/out in another tab
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -65,10 +72,10 @@ export default function Home() {
             </p>
           </div>
           <Link
-            href="/login"
+            href={loggedIn ? '/dashboard' : '/login'}
             className="mt-1 text-sm text-zinc-400 hover:text-zinc-700"
           >
-            Member login →
+            {loggedIn ? 'Edit profile →' : 'Member login →'}
           </Link>
         </div>
         {loading ? (

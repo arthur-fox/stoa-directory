@@ -102,7 +102,7 @@ export default function DashboardPage() {
     await supabase.from('projects').update({
       title: project.title,
       description: project.description,
-      url: project.url,
+      url: project.url || null,        // empty string → null
       status: project.status,
       visibility: project.visibility,
       seeking_feedback: project.seeking_feedback,
@@ -118,8 +118,9 @@ export default function DashboardPage() {
     if (!member || !newProject) return;
     const { data } = await supabase.from('projects').insert({
       ...newProject,
+      url: newProject.url || null,     // empty string → null
       member_id: member.id,
-    }).select().single();
+    }).select().maybeSingle();
     if (data) {
       setMember((m) => m ? { ...m, projects: [...m.projects, data] } : m);
       setNewProject(null);
