@@ -41,7 +41,7 @@ export default function AdminPage() {
       const { data } = await supabase
         .from('members')
         .select('id, slug, name, email, visibility, user_id, is_admin')
-        .order('created_at');
+        .order('name', { ascending: true });
 
       setMembers(data ?? []);
       setLoading(false);
