@@ -23,6 +23,7 @@ interface MemberRow {
   name: string;
   bio: string;
   location: string | null;
+  visibility: 'public' | 'community';
   social: { twitter?: string; linkedin?: string; website?: string };
   is_admin: boolean;
   projects: Project[];
@@ -91,7 +92,7 @@ export default function DashboardPage() {
     setSaving(true);
     await supabase
       .from('members')
-      .update({ bio: member.bio, location: member.location, social: member.social })
+      .update({ bio: member.bio, location: member.location, social: member.social, visibility: member.visibility })
       .eq('id', member.id);
     setSaving(false);
     setSaved(true);
@@ -223,6 +224,26 @@ export default function DashboardPage() {
                   />
                 </div>
               ))}
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5">
+              <div>
+                <p className="text-sm font-medium text-zinc-700">Profile visibility</p>
+                <p className="text-xs text-zinc-400">
+                  {member.visibility === 'public'
+                    ? 'Visible to everyone, including logged-out visitors'
+                    : 'Visible to Stoa members only'}
+                </p>
+              </div>
+              <button
+                onClick={() => setMember({ ...member, visibility: member.visibility === 'public' ? 'community' : 'public' })}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  member.visibility === 'public'
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                    : 'bg-zinc-200 text-zinc-500 hover:bg-zinc-300'
+                }`}
+              >
+                {member.visibility === 'public' ? 'Public' : 'Community only'}
+              </button>
             </div>
             <button
               onClick={saveProfile}
