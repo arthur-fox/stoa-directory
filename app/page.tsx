@@ -43,7 +43,7 @@ export default function Home() {
     async function init() {
       const [{ data: { session } }, { data: membersData }] = await Promise.all([
         supabase.auth.getSession(),
-        supabase.from('members').select('*, projects(*)').eq('visibility', 'public').order('created_at'),
+        supabase.from('members').select('*, projects(*)').order('created_at'),
       ]);
       setLoggedIn(!!session);
       setMembers((membersData ?? []).map(toMember));
