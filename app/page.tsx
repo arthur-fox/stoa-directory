@@ -34,10 +34,27 @@ function toMember(row: Record<string, unknown>): Member {
   };
 }
 
+interface FeedbackProject {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  member: { name: string; slug: string; avatar: string | null };
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  general: 'General',
+  design: 'Design & UX',
+  'idea-validation': 'Idea validation',
+  growth: 'Growth',
+  technical: 'Technical',
+};
+
 export default function Home() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [feedbackProjects, setFeedbackProjects] = useState<FeedbackProject[]>([]);
 
   useEffect(() => {
     async function init() {
@@ -45,16 +62,23 @@ export default function Home() {
         supabase.auth.getSession(),
         supabase.from('members').select('*, projects(*)').order('created_at'),
       ]);
-      setLoggedIn(!!session);
+      const isLoggedIn = !!session;
+      setLoggedIn(isLoggedIn);
       const allMembers = (membersData ?? []).map(toMember);
-      // Hide members who haven't filled anything out yet
-      const filledMembers = allMembers.filter(m => m.bio.trim() || m.projects.length > 0);
-      setMembers(filledMembers);
+      setMembers(allMembers.filter(m => m.bio.trim() || m.projects.length > 0));
       setLoading(false);
+
+      if (isLoggedIn) {
+        const { data } = await supabase
+          .from('projects')
+          .select('id, title, description, status, member:member_id(name, slug, avatar)')
+          .eq('seeking_feedback', true)
+          .order('created_at', { ascending: false });
+        setFeedbackProjects((data ?? []) as unknown as FeedbackProject[]);
+      }
     }
     init();
 
-    // Keep nav in sync if the user signs in/out in another tab
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setLoggedIn(!!session);
     });
@@ -81,6 +105,7 @@ export default function Home() {
             {loggedIn ? 'Edit profile →' : 'Member login →'}
           </Link>
         </div>
+
         {loading ? (
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -89,6 +114,45 @@ export default function Home() {
           </div>
         ) : (
           <MemberGrid members={members} />
+        )}
+
+        {/* Seeking feedback — community-only section */}
+        {loggedIn && feedbackProjects.length > 0 && (
+          <div className="mt-20">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-zinc-900">Seeking feedback</h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                These members are looking for input from the community.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {feedbackProjects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/members/${project.member.slug}`}
+                  className="flex flex-col gap-2 rounded-xl border border-violet-100 bg-violet-50/50 p-4 transition-shadow hover:shadow-md"
+                >
+                  <div className="flex items-center gap-2">
+                    {project.member.avatar ? (
+                      <img src={project.member.avatar} alt={project.member.name} className="h-6 w-6 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-200 text-xs font-semibold text-violet-700">
+                        {project.member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-violet-700">{project.member.name}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-zinc-900">{project.title}</p>
+                  {project.description && (
+                    <p className="line-clamp-2 text-xs text-zinc-500">{project.description}</p>
+                  )}
+                  <span className="mt-auto self-start rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
+                    Give feedback →
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </main>

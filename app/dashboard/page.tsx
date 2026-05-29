@@ -29,6 +29,24 @@ interface MemberRow {
   projects: Project[];
 }
 
+interface FeedbackRow {
+  id: string;
+  project_id: string;
+  category: string;
+  content: string;
+  created_at: string;
+  from_member: { name: string; slug: string } | null;
+  project: { title: string } | null;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  general: 'General',
+  design: 'Design & UX',
+  'idea-validation': 'Idea validation',
+  growth: 'Growth & traction',
+  technical: 'Technical',
+};
+
 const emptyProject = (): Omit<Project, 'id'> => ({
   title: '',
   description: '',
@@ -50,6 +68,7 @@ export default function DashboardPage() {
   const [newProject, setNewProject] = useState<Omit<Project, 'id'> | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [projectError, setProjectError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackRow[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -84,6 +103,17 @@ export default function DashboardPage() {
 
       setMember(resolved);
       setLoading(false);
+
+      // Fetch feedback received on my projects
+      if (resolved && resolved.projects.length > 0) {
+        const projectIds = resolved.projects.map((p: Project) => p.id);
+        const { data: feedbackData } = await supabase
+          .from('feedback')
+          .select('id, project_id, category, content, created_at, from_member:from_member_id(name, slug), project:project_id(title)')
+          .in('project_id', projectIds)
+          .order('created_at', { ascending: false });
+        setFeedback((feedbackData ?? []) as unknown as FeedbackRow[]);
+      }
     });
   }, [router]);
 
@@ -304,6 +334,41 @@ export default function DashboardPage() {
             )}
           </div>
         </section>
+
+        {/* Feedback received */}
+        {feedback.length > 0 && (
+          <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 font-semibold text-zinc-900">Feedback received</h2>
+            <div className="flex flex-col gap-4">
+              {feedback.map((fb) => (
+                <div key={fb.id} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
+                        {CATEGORY_LABELS[fb.category] ?? fb.category}
+                      </span>
+                      {fb.project && (
+                        <span className="text-xs text-zinc-400">on {fb.project.title}</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-zinc-300">
+                      {new Date(fb.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-zinc-700">{fb.content}</p>
+                  {fb.from_member && (
+                    <p className="mt-2 text-xs text-zinc-400">
+                      from{' '}
+                      <Link href={`/members/${fb.from_member.slug}`} className="hover:text-zinc-700 hover:underline">
+                        {fb.from_member.name}
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

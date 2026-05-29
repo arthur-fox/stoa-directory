@@ -45,3 +45,4 @@ next-env.d.ts
 supabase/*.sql
 !supabase/schema.sql
 !supabase/add_admin.sql
+!supabase/add_feedback.sql
