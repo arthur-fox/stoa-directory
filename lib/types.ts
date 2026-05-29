@@ -18,6 +18,7 @@ export interface Project {
   status: ProjectStatus;
   thumbnail?: string | null;
   seekingFeedback: boolean;
+  feedbackPrompt?: string;
 }
 
 export interface Member {

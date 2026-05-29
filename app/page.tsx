@@ -38,6 +38,7 @@ interface FeedbackProject {
   id: string;
   title: string;
   description: string;
+  feedback_prompt: string;
   status: string;
   member: { name: string; slug: string; avatar: string | null };
 }
@@ -71,7 +72,7 @@ export default function Home() {
       if (isLoggedIn) {
         const { data } = await supabase
           .from('projects')
-          .select('id, title, description, status, member:member_id(name, slug, avatar)')
+          .select('id, title, description, feedback_prompt, status, member:member_id(name, slug, avatar)')
           .eq('seeking_feedback', true)
           .order('created_at', { ascending: false });
         setFeedbackProjects((data ?? []) as unknown as FeedbackProject[]);
@@ -143,9 +144,11 @@ export default function Home() {
                     <span className="text-xs font-medium text-violet-700">{project.member.name}</span>
                   </div>
                   <p className="text-sm font-semibold text-zinc-900">{project.title}</p>
-                  {project.description && (
+                  {project.feedback_prompt ? (
+                    <p className="line-clamp-2 text-xs italic text-violet-600">&ldquo;{project.feedback_prompt}&rdquo;</p>
+                  ) : project.description ? (
                     <p className="line-clamp-2 text-xs text-zinc-500">{project.description}</p>
-                  )}
+                  ) : null}
                   <span className="mt-auto self-start rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
                     Give feedback →
                   </span>

@@ -46,3 +46,4 @@ supabase/*.sql
 !supabase/schema.sql
 !supabase/add_admin.sql
 !supabase/add_feedback.sql
+!supabase/add_feedback_v2.sql

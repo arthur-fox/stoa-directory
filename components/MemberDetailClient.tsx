@@ -18,6 +18,7 @@ function toMember(row: Record<string, unknown>): Member {
     status: (p.status as 'active' | 'shipped' | 'wip') ?? 'active',
     thumbnail: (p.thumbnail as string) ?? null,
     seekingFeedback: Boolean(p.seeking_feedback),
+    feedbackPrompt: String(p.feedback_prompt ?? ''),
   }));
   return {
     id: String(row.id),
@@ -174,16 +175,21 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
                   <ProjectCard project={project} />
                   {/* Feedback CTA — only for logged-in non-owners on projects seeking feedback */}
                   {loggedIn && !isOwner && project.seekingFeedback && myMemberId && (
-                    submitted.has(project.id) ? (
-                      <p className="mt-1.5 pl-1 text-xs text-green-600">✓ Feedback sent — thank you!</p>
-                    ) : (
-                      <button
-                        onClick={() => { setFeedbackProject(project); setContent(''); setCategory('general'); }}
-                        className="mt-1.5 pl-1 text-xs text-violet-600 hover:text-violet-800 hover:underline"
-                      >
-                        Give feedback on this project →
-                      </button>
-                    )
+                    <div className="mt-2 rounded-lg border border-violet-100 bg-violet-50/60 px-3 py-2">
+                      {project.feedbackPrompt && (
+                        <p className="mb-1.5 text-xs text-violet-700">&ldquo;{project.feedbackPrompt}&rdquo;</p>
+                      )}
+                      {submitted.has(project.id) ? (
+                        <p className="text-xs text-green-600">✓ Feedback sent — thank you!</p>
+                      ) : (
+                        <button
+                          onClick={() => { setFeedbackProject(project); setContent(''); setCategory('general'); }}
+                          className="text-xs font-medium text-violet-600 hover:text-violet-800 hover:underline"
+                        >
+                          Give feedback on this project →
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -204,6 +210,11 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
               <button onClick={() => setFeedbackProject(null)} className="mt-0.5 text-zinc-400 hover:text-zinc-600">✕</button>
             </div>
             <div className="flex flex-col gap-3">
+              {feedbackProject.feedbackPrompt && (
+                <p className="rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500">
+                  &ldquo;{feedbackProject.feedbackPrompt}&rdquo;
+                </p>
+              )}
               <div>
                 <label className="mb-1 block text-xs font-medium text-zinc-500">Category</label>
                 <select

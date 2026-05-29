@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -14,6 +14,7 @@ interface Project {
   status: 'active' | 'shipped' | 'wip';
   visibility: 'public' | 'community';
   seeking_feedback: boolean;
+  feedback_prompt: string;
   tags: string[];
 }
 
@@ -35,6 +36,7 @@ interface FeedbackRow {
   category: string;
   content: string;
   created_at: string;
+  read_at: string | null;
   from_member: { name: string; slug: string } | null;
   project: { title: string } | null;
 }
@@ -54,6 +56,7 @@ const emptyProject = (): Omit<Project, 'id'> => ({
   status: 'active',
   visibility: 'community',
   seeking_feedback: false,
+  feedback_prompt: '',
   tags: [],
 });
 
@@ -69,6 +72,8 @@ export default function DashboardPage() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [projectError, setProjectError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackRow[]>([]);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const feedbackSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -109,13 +114,26 @@ export default function DashboardPage() {
         const projectIds = resolved.projects.map((p: Project) => p.id);
         const { data: feedbackData } = await supabase
           .from('feedback')
-          .select('id, project_id, category, content, created_at, from_member:from_member_id(name, slug), project:project_id(title)')
+          .select('id, project_id, category, content, created_at, read_at, from_member:from_member_id(name, slug), project:project_id(title)')
           .in('project_id', projectIds)
           .order('created_at', { ascending: false });
         setFeedback((feedbackData ?? []) as unknown as FeedbackRow[]);
       }
     });
   }, [router]);
+
+  async function markFeedbackAsRead() {
+    const unreadIds = feedback.filter(fb => !fb.read_at).map(fb => fb.id);
+    if (unreadIds.length === 0) return;
+    await supabase.from('feedback').update({ read_at: new Date().toISOString() }).in('id', unreadIds);
+    setFeedback(prev => prev.map(fb => fb.read_at ? fb : { ...fb, read_at: new Date().toISOString() }));
+  }
+
+  function handleViewFeedback() {
+    feedbackSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    markFeedbackAsRead();
+    setBannerDismissed(true);
+  }
 
   async function saveProfile() {
     if (!member) return;
@@ -134,10 +152,11 @@ export default function DashboardPage() {
     await supabase.from('projects').update({
       title: project.title,
       description: project.description,
-      url: project.url || null,        // empty string → null
+      url: project.url || null,
       status: project.status,
       visibility: project.visibility,
       seeking_feedback: project.seeking_feedback,
+      feedback_prompt: project.feedback_prompt || null,
     }).eq('id', project.id);
     setMember((m) => m ? {
       ...m,
@@ -149,7 +168,6 @@ export default function DashboardPage() {
   async function addProject() {
     if (!member || !newProject) return;
     setProjectError(null);
-    // Explicitly list fields — avoids sending id:'' that the form stores internally
     const { data, error } = await supabase.from('projects').insert({
       member_id:        member.id,
       title:            newProject.title,
@@ -158,6 +176,7 @@ export default function DashboardPage() {
       status:           newProject.status,
       visibility:       newProject.visibility,
       seeking_feedback: newProject.seeking_feedback,
+      feedback_prompt:  newProject.feedback_prompt || null,
       tags:             newProject.tags,
     }).select().maybeSingle();
     if (error) { setProjectError(error.message); return; }
@@ -197,6 +216,8 @@ export default function DashboardPage() {
     );
   }
 
+  const unreadCount = feedback.filter(fb => !fb.read_at).length;
+
   return (
     <main className="min-h-screen bg-zinc-50">
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
@@ -219,6 +240,29 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        {/* New feedback banner */}
+        {unreadCount > 0 && !bannerDismissed && (
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
+            <p className="text-sm font-medium text-violet-800">
+              🎉 You have {unreadCount} new {unreadCount === 1 ? 'feedback' : 'feedback items'}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleViewFeedback}
+                className="text-xs font-medium text-violet-600 hover:text-violet-800 hover:underline"
+              >
+                View →
+              </button>
+              <button
+                onClick={() => { markFeedbackAsRead(); setBannerDismissed(true); }}
+                className="text-xs text-violet-400 hover:text-violet-600"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Profile */}
         <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
@@ -314,7 +358,10 @@ export default function DashboardPage() {
                 <div key={project.id} className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5">
                   <div>
                     <p className="text-sm font-medium text-zinc-800">{project.title}</p>
-                    <p className="text-xs text-zinc-400">{project.visibility === 'public' ? 'Public' : 'Community only'} · {project.status}</p>
+                    <p className="text-xs text-zinc-400">
+                      {project.visibility === 'public' ? 'Public' : 'Community only'} · {project.status}
+                      {project.seeking_feedback && ' · seeking feedback'}
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setEditingProject(project.id)} className="text-xs text-zinc-400 hover:text-zinc-700">Edit</button>
@@ -337,13 +384,23 @@ export default function DashboardPage() {
 
         {/* Feedback received */}
         {feedback.length > 0 && (
-          <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <section ref={feedbackSectionRef} className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 font-semibold text-zinc-900">Feedback received</h2>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {feedback.map((fb) => (
-                <div key={fb.id} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                <div
+                  key={fb.id}
+                  className={`rounded-lg border p-4 ${
+                    fb.read_at
+                      ? 'border-zinc-100 bg-zinc-50'
+                      : 'border-violet-200 bg-violet-50/50'
+                  }`}
+                >
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
+                      {!fb.read_at && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+                      )}
                       <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
                         {CATEGORY_LABELS[fb.category] ?? fb.category}
                       </span>
@@ -433,7 +490,7 @@ function ProjectForm({
           </select>
         </div>
       </div>
-      <label className="flex items-center gap-2 text-xs text-zinc-500">
+      <label className="flex items-center gap-2 text-xs font-medium text-zinc-600">
         <input
           type="checkbox"
           checked={value.seeking_feedback}
@@ -442,6 +499,15 @@ function ProjectForm({
         />
         Seeking feedback from the community
       </label>
+      {value.seeking_feedback && (
+        <textarea
+          rows={2}
+          placeholder="What feedback are you looking for? e.g. Does the pricing make sense? Is the onboarding clear?"
+          value={value.feedback_prompt ?? ''}
+          onChange={(e) => onChange({ ...value, feedback_prompt: e.target.value })}
+          className="w-full resize-none rounded border border-zinc-200 px-3 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+        />
+      )}
       <div className="flex justify-end gap-2 pt-1">
         <button onClick={onCancel} className="text-xs text-zinc-400 hover:text-zinc-700">Cancel</button>
         <button
