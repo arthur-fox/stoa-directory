@@ -72,7 +72,6 @@ export default function DashboardPage() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [projectError, setProjectError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackRow[]>([]);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
   const feedbackSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -127,12 +126,6 @@ export default function DashboardPage() {
     if (unreadIds.length === 0) return;
     await supabase.from('feedback').update({ read_at: new Date().toISOString() }).in('id', unreadIds);
     setFeedback(prev => prev.map(fb => fb.read_at ? fb : { ...fb, read_at: new Date().toISOString() }));
-  }
-
-  function handleViewFeedback() {
-    feedbackSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-    markFeedbackAsRead();
-    setBannerDismissed(true);
   }
 
   async function saveProfile() {
@@ -226,7 +219,14 @@ export default function DashboardPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <Link href="/" className="text-sm text-zinc-400 hover:text-zinc-700">← Directory</Link>
-            <h1 className="mt-2 text-2xl font-bold text-zinc-900">My profile</h1>
+            <div className="mt-2 flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-zinc-900">My profile</h1>
+              {unreadCount > 0 && (
+                <span className="animate-pulse rounded-full bg-violet-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+                  {unreadCount} new feedback
+                </span>
+              )}
+            </div>
             <p className="text-xs text-zinc-400">{user?.email}</p>
           </div>
           <div className="flex items-center gap-4">
@@ -241,27 +241,50 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* New feedback banner */}
-        {unreadCount > 0 && !bannerDismissed && (
-          <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
-            <p className="text-sm font-medium text-violet-800">
-              🎉 You have {unreadCount} new {unreadCount === 1 ? 'feedback' : 'feedback items'}
-            </p>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleViewFeedback}
-                className="text-xs font-medium text-violet-600 hover:text-violet-800 hover:underline"
-              >
-                View →
-              </button>
-              <button
-                onClick={() => { markFeedbackAsRead(); setBannerDismissed(true); }}
-                className="text-xs text-violet-400 hover:text-violet-600"
-              >
-                ✕
-              </button>
+        {/* Feedback received — shown at the top when there's unread feedback */}
+        {feedback.length > 0 && unreadCount > 0 && (
+          <section ref={feedbackSectionRef} className="mb-6 rounded-xl border-2 border-violet-300 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-3">
+              <h2 className="font-semibold text-zinc-900">Feedback received</h2>
+              <span className="rounded-full bg-violet-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+                {unreadCount} new
+              </span>
             </div>
-          </div>
+            <div className="flex flex-col gap-3">
+              {feedback.map((fb) => (
+                <div
+                  key={fb.id}
+                  className={`rounded-lg border p-4 ${fb.read_at ? 'border-zinc-100 bg-zinc-50' : 'border-violet-200 bg-violet-50/50'}`}
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {!fb.read_at && <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />}
+                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
+                        {CATEGORY_LABELS[fb.category] ?? fb.category}
+                      </span>
+                      {fb.project && <span className="text-xs text-zinc-400">on {fb.project.title}</span>}
+                    </div>
+                    <span className="text-xs text-zinc-300">{new Date(fb.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p className="text-sm text-zinc-700">{fb.content}</p>
+                  {fb.from_member && (
+                    <p className="mt-2 text-xs text-zinc-400">
+                      from{' '}
+                      <Link href={`/members/${fb.from_member.slug}`} className="hover:text-zinc-700 hover:underline">
+                        {fb.from_member.name}
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => { markFeedbackAsRead(); }}
+              className="mt-4 text-xs text-zinc-400 hover:text-zinc-600"
+            >
+              Mark all as read
+            </button>
+          </section>
         )}
 
         {/* Profile */}
@@ -382,8 +405,8 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Feedback received */}
-        {feedback.length > 0 && (
+        {/* Feedback received — quiet state, shown at bottom once all are read */}
+        {feedback.length > 0 && unreadCount === 0 && (
           <section ref={feedbackSectionRef} className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 font-semibold text-zinc-900">Feedback received</h2>
             <div className="flex flex-col gap-3">
