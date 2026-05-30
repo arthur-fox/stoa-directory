@@ -49,3 +49,4 @@ supabase/*.sql
 !supabase/add_feedback_v2.sql
 !supabase/add_project_ordering.sql
 !supabase/add_listed_at.sql
+!supabase/add_avatar_storage.sql

@@ -23,6 +23,7 @@ interface MemberRow {
   id: string;
   slug: string;
   name: string;
+  avatar: string | null;
   bio: string;
   location: string | null;
   visibility: 'public' | 'community';
@@ -74,7 +75,10 @@ export default function DashboardPage() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [projectError, setProjectError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackRow[]>([]);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
   const feedbackSectionRef = useRef<HTMLElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -128,6 +132,30 @@ export default function DashboardPage() {
     if (unreadIds.length === 0) return;
     await supabase.from('feedback').update({ read_at: new Date().toISOString() }).in('id', unreadIds);
     setFeedback(prev => prev.map(fb => fb.read_at ? fb : { ...fb, read_at: new Date().toISOString() }));
+  }
+
+  async function uploadAvatar(file: File) {
+    if (!member || !user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError('Image must be under 5 MB.');
+      return;
+    }
+    setUploadingAvatar(true);
+    setAvatarError(null);
+    const ext = file.name.split('.').pop();
+    const path = `${user.id}/avatar.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true });
+    if (uploadError) {
+      setAvatarError(uploadError.message);
+      setUploadingAvatar(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+    await supabase.from('members').update({ avatar: publicUrl }).eq('id', member.id);
+    setMember({ ...member, avatar: publicUrl });
+    setUploadingAvatar(false);
   }
 
   async function saveProfile() {
@@ -331,6 +359,49 @@ export default function DashboardPage() {
         <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 font-semibold text-zinc-900">Profile</h2>
           <div className="flex flex-col gap-3">
+
+            {/* Avatar upload */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-full focus:outline-none"
+                title="Change photo"
+              >
+                {member.avatar ? (
+                  <img src={member.avatar} alt={member.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-lg font-semibold text-zinc-600">
+                    {member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                  {uploadingAvatar
+                    ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    : <span className="text-xs font-medium text-white">Edit</span>
+                  }
+                </div>
+              </button>
+              <div>
+                <p className="text-sm font-medium text-zinc-700">{member.name}</p>
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="mt-0.5 text-xs text-violet-600 hover:text-violet-800 hover:underline disabled:opacity-50"
+                >
+                  {uploadingAvatar ? 'Uploading…' : 'Change photo'}
+                </button>
+                {avatarError && <p className="mt-1 text-xs text-red-500">{avatarError}</p>}
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); e.target.value = ''; }}
+              />
+            </div>
+
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500">Bio</label>
               <textarea
