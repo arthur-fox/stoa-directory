@@ -2,20 +2,18 @@ import Link from 'next/link';
 import { Project } from '@/lib/types';
 
 const statusStyles: Record<string, string> = {
-  active:  'bg-emerald-50 text-emerald-700',
-  shipped: 'bg-blue-50 text-blue-700',
-  wip:     'bg-amber-50 text-amber-700',
+  live: 'bg-emerald-50 text-emerald-700',
+  wip:  'bg-amber-50 text-amber-700',
 };
 
 // Compact dot colours — used in tile cards where space is tight
 const statusDot: Record<string, string> = {
-  active:  'bg-emerald-400',
-  shipped: 'bg-blue-400',
-  wip:     'bg-amber-400',
+  live: 'bg-emerald-400',
+  wip:  'bg-amber-400',
 };
 
 const statusLabel: Record<string, string> = {
-  active: 'Active', shipped: 'Shipped', wip: 'WIP',
+  live: 'Live', wip: 'WIP',
 };
 
 interface Props {

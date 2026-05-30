@@ -17,7 +17,7 @@ function toMember(row: Record<string, unknown>): Member {
     type: String(p.type ?? 'app'),
     tags: (p.tags as string[]) ?? [],
     visibility: (p.visibility as 'public' | 'community') ?? 'community',
-    status: (p.status as 'active' | 'shipped' | 'wip') ?? 'active',
+    status: (p.status as 'wip' | 'live') ?? 'live',
     thumbnail: (p.thumbnail as string) ?? null,
     seekingFeedback: Boolean(p.seeking_feedback),
     feedbackPrompt: String(p.feedback_prompt ?? ''),

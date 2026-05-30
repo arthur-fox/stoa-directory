@@ -9,7 +9,7 @@ interface ProjectDetail {
   title: string;
   description: string;
   url: string | null;
-  status: 'active' | 'shipped' | 'wip';
+  status: 'wip' | 'live';
   visibility: 'public' | 'community';
   seeking_feedback: boolean;
   feedback_prompt: string;
@@ -32,12 +32,11 @@ interface FeedbackRow {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  active:  'bg-emerald-50 text-emerald-700',
-  shipped: 'bg-blue-50 text-blue-700',
-  wip:     'bg-amber-50 text-amber-700',
+  live: 'bg-emerald-50 text-emerald-700',
+  wip:  'bg-amber-50 text-amber-700',
 };
 const STATUS_LABELS: Record<string, string> = {
-  active: 'Active', shipped: 'Shipped', wip: 'WIP',
+  live: 'Live', wip: 'WIP',
 };
 const CATEGORIES = [
   { value: 'general',         label: 'General feedback' },

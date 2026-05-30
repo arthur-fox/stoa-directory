@@ -11,7 +11,7 @@ interface Project {
   title: string;
   description: string;
   url: string | null;
-  status: 'active' | 'shipped' | 'wip';
+  status: 'wip' | 'live';
   visibility: 'public' | 'community';
   seeking_feedback: boolean;
   feedback_prompt: string;
@@ -55,7 +55,7 @@ const emptyProject = (position = 0): Omit<Project, 'id'> => ({
   title: '',
   description: '',
   url: '',
-  status: 'active',
+  status: 'live',
   visibility: 'community',
   seeking_feedback: false,
   feedback_prompt: '',
@@ -623,9 +623,8 @@ function ProjectForm({
             onChange={(e) => onChange({ ...value, status: e.target.value as Project['status'] })}
             className="w-full rounded border border-zinc-200 px-2 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
           >
-            <option value="active">Active</option>
+            <option value="live">Live</option>
             <option value="wip">WIP</option>
-            <option value="shipped">Shipped</option>
           </select>
         </div>
         <div>

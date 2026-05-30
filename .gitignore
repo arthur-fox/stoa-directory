@@ -52,3 +52,4 @@ supabase/*.sql
 !supabase/add_avatar_storage.sql
 !supabase/security_fixes.sql
 !supabase/security_fixes_v2.sql
+!supabase/migrate_status_to_live.sql

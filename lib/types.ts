@@ -1,5 +1,5 @@
 export type Visibility = 'public' | 'community';
-export type ProjectStatus = 'active' | 'shipped' | 'wip';
+export type ProjectStatus = 'wip' | 'live';
 
 export interface SocialLinks {
   twitter?: string;

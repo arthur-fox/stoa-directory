@@ -31,7 +31,7 @@ create table projects (
   type             text default 'app',
   tags             text[] default '{}',
   visibility       text default 'community' check (visibility in ('public', 'community')),
-  status           text default 'active' check (status in ('active', 'shipped', 'wip')),
+  status           text default 'live' check (status in ('wip', 'live')),
   thumbnail        text,
   seeking_feedback boolean default false,
   created_at       timestamp with time zone default now()
