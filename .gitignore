@@ -51,3 +51,4 @@ supabase/*.sql
 !supabase/add_listed_at.sql
 !supabase/add_avatar_storage.sql
 !supabase/security_fixes.sql
+!supabase/security_fixes_v2.sql

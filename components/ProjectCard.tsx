@@ -18,14 +18,15 @@ interface Props {
 
 export default function ProjectCard({ project, compact = false }: Props) {
   if (compact) {
+    // Compact: title → project detail page  |  ↗ button → external URL
     return (
-      <Link
-        href={`/projects/${project.id}`}
-        className="group flex items-center justify-between rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-1.5 transition-colors hover:border-zinc-200 hover:bg-white"
-      >
-        <span className="truncate text-xs font-medium text-zinc-700 group-hover:text-black">
+      <div className="flex items-center justify-between rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-1.5 transition-colors hover:border-zinc-200 hover:bg-white">
+        <Link
+          href={`/projects/${project.id}`}
+          className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-700 hover:text-black hover:underline"
+        >
           {project.title}
-        </span>
+        </Link>
         <div className="ml-2 flex shrink-0 items-center gap-1">
           {project.seekingFeedback && (
             <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-xs font-medium text-violet-600">
@@ -35,20 +36,32 @@ export default function ProjectCard({ project, compact = false }: Props) {
           <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${statusStyles[project.status]}`}>
             {statusLabel[project.status]}
           </span>
+          {project.url && (
+            <a
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-0.5 flex h-5 w-5 items-center justify-center rounded text-zinc-300 transition-colors hover:bg-zinc-200 hover:text-zinc-600"
+              title={`Open ${project.title}`}
+            >
+              ↗
+            </a>
+          )}
         </div>
-      </Link>
+      </div>
     );
   }
 
+  // Full card: title → project detail page  |  ↗ button → external URL
   return (
-    <Link
-      href={`/projects/${project.id}`}
-      className="group block rounded-lg border border-zinc-100 bg-zinc-50 p-3 transition-colors hover:border-zinc-200 hover:bg-white"
-    >
+    <div className="group rounded-lg border border-zinc-100 bg-zinc-50 p-3 transition-colors hover:border-zinc-200 hover:bg-white">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-medium text-zinc-800 group-hover:text-black">
+        <Link
+          href={`/projects/${project.id}`}
+          className="text-sm font-medium text-zinc-800 hover:text-black hover:underline"
+        >
           {project.title}
-        </span>
+        </Link>
         <div className="flex shrink-0 items-center gap-1.5">
           {project.seekingFeedback && (
             <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-600">
@@ -59,7 +72,15 @@ export default function ProjectCard({ project, compact = false }: Props) {
             {statusLabel[project.status]}
           </span>
           {project.url && (
-            <span className="text-xs text-zinc-300 group-hover:text-zinc-400">↗</span>
+            <a
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-5 w-5 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-200 hover:text-zinc-600"
+              title={`Open ${project.title}`}
+            >
+              ↗
+            </a>
           )}
         </div>
       </div>
@@ -73,6 +94,6 @@ export default function ProjectCard({ project, compact = false }: Props) {
           ))}
         </div>
       )}
-    </Link>
+    </div>
   );
 }
