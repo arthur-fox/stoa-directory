@@ -40,9 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local planning notes, roadmaps, and draft docs
-/local-plans/
-
 # Supabase one-off migration/seed files (may contain PII like emails)
 # Commit schema.sql and add_admin.sql manually if needed; exclude everything else
 supabase/*.sql

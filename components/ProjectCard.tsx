@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Member, Project } from '@/lib/types';
+import { Project } from '@/lib/types';
 
 const statusStyles: Record<string, string> = {
   live: 'bg-emerald-50 text-emerald-700',
@@ -16,32 +16,12 @@ const statusLabel: Record<string, string> = {
   live: 'Live', wip: 'WIP',
 };
 
-function getStatusLabel(status: string) {
-  return statusLabel[status] ?? status.replaceAll('-', ' ');
-}
-
 interface Props {
   project: Project;
   compact?: boolean;
-  owner?: Pick<Member, 'name' | 'slug'>;
 }
 
-function Avatar({ name }: { name: string }) {
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-[10px] font-semibold text-zinc-600">
-      {initials}
-    </div>
-  );
-}
-
-export default function ProjectCard({ project, compact = false, owner }: Props) {
+export default function ProjectCard({ project, compact = false }: Props) {
   if (compact) {
     // Compact: title → project detail page  |  ↗ button → external URL
     return (
@@ -60,8 +40,8 @@ export default function ProjectCard({ project, compact = false, owner }: Props) 
           )}
           {/* Status as a coloured dot to save space — hover shows the label */}
           <span
-            className={`h-2 w-2 rounded-full ${statusDot[project.status] ?? 'bg-zinc-300'}`}
-            title={getStatusLabel(project.status)}
+            className={`h-2 w-2 rounded-full ${statusDot[project.status]}`}
+            title={statusLabel[project.status]}
           />
           {project.url && (
             <a
@@ -82,15 +62,6 @@ export default function ProjectCard({ project, compact = false, owner }: Props) 
   // Full card: title → project detail page  |  ↗ button → external URL
   return (
     <div className="group rounded-lg border border-zinc-100 bg-zinc-50 p-3 transition-colors hover:border-zinc-200 hover:bg-white">
-      {owner && (
-        <Link
-          href={`/members/${owner.slug}`}
-          className="mb-2 flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
-        >
-          <Avatar name={owner.name} />
-          <span className="truncate">{owner.name}</span>
-        </Link>
-      )}
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/projects/${project.id}`}
@@ -104,8 +75,8 @@ export default function ProjectCard({ project, compact = false, owner }: Props) 
               Feedback wanted
             </span>
           )}
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[project.status] ?? 'bg-zinc-100 text-zinc-600'}`}>
-            {getStatusLabel(project.status)}
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[project.status]}`}>
+            {statusLabel[project.status]}
           </span>
           {project.url && (
             <a

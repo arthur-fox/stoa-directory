@@ -25,9 +25,9 @@ A community member directory for Stoa. Members get tiles showing their name, bio
 
 **Static export + client-side data fetching.** Pages fetch from Supabase in the browser. `generateStaticParams` for `[slug]` fetches slugs from Supabase at build time — new members' detail pages won't appear until next deploy.
 
-**GitHub Pages requires `basePath: "/stoa-directory"`** for production/export builds in `next.config.ts`. Don't remove it from production config.
+**GitHub Pages requires `basePath: "/stoa-directory"`** in `next.config.ts`. Don't remove it.
 
-**Auth redirect URL** is set via `NEXT_PUBLIC_SITE_URL` env var. Local: `http://localhost:3000`. Production: `https://arthur-fox.github.io/stoa-directory`.
+**Auth redirect URL** is set via `NEXT_PUBLIC_SITE_URL` env var. Local: `http://localhost:3000/stoa-directory`. Production: `https://arthur-fox.github.io/stoa-directory`.
 
 ## Environment variables
 Required in `.env.local` locally and as GitHub Actions secrets for deployment:

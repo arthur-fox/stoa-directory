@@ -74,7 +74,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
   const [feedbackProjects, setFeedbackProjects] = useState<FeedbackProject[]>([]);
-  const [viewMode, setViewMode] = useState<ViewMode>('members');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => getViewModeFromUrl());
   const [feedbackOnly, setFeedbackOnly] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [projectSearch, setProjectSearch] = useState('');
@@ -163,8 +163,6 @@ export default function Home() {
   }, [feedbackOnly, projectItems, projectSearch, statusFilter]);
 
   useEffect(() => {
-    setViewMode(getViewModeFromUrl());
-
     function handlePopState() {
       setViewMode(getViewModeFromUrl());
     }
