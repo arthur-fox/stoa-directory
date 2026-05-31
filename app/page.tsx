@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Member } from '@/lib/types';
 import MemberGrid from '@/components/MemberGrid';
+import ProjectGrid from '@/components/ProjectGrid';
+import type { ProjectListItem } from '@/components/ProjectGrid';
 import Link from 'next/link';
 
 function toMember(row: Record<string, unknown>): Member {
@@ -20,6 +22,7 @@ function toMember(row: Record<string, unknown>): Member {
     status: (p.status as 'wip' | 'live') ?? 'live',
     thumbnail: (p.thumbnail as string) ?? null,
     seekingFeedback: Boolean(p.seeking_feedback),
+    feedbackPrompt: String(p.feedback_prompt ?? ''),
   }));
 
   return {
@@ -45,21 +48,129 @@ interface FeedbackProject {
   member: { name: string; slug: string; avatar: string | null };
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  general: 'General',
-  design: 'Design & UX',
-  'idea-validation': 'Idea validation',
-  growth: 'Growth',
-  technical: 'Technical',
+type ViewMode = 'members' | 'projects';
+type StatusFilter = 'all' | string;
+
+const STATUS_LABELS: Record<string, string> = {
+  live: 'Live',
+  wip: 'Work in progress',
 };
+
+function formatStatusLabel(status: string) {
+  return STATUS_LABELS[status] ?? status.replaceAll('-', ' ');
+}
+
+function getViewModeFromUrl(): ViewMode {
+  if (typeof window === 'undefined') {
+    return 'members';
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return params.get('view') === 'projects' ? 'projects' : 'members';
+}
 
 export default function Home() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
   const [feedbackProjects, setFeedbackProjects] = useState<FeedbackProject[]>([]);
+  const [viewMode, setViewMode] = useState<ViewMode>('members');
+  const [feedbackOnly, setFeedbackOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [projectSearch, setProjectSearch] = useState('');
+
+  function updateViewMode(mode: ViewMode) {
+    setViewMode(mode);
+
+    const url = new URL(window.location.href);
+    if (mode === 'projects') {
+      url.searchParams.set('view', 'projects');
+    } else {
+      url.searchParams.delete('view');
+    }
+
+    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  }
+
+  const projectItems = useMemo<ProjectListItem[]>(() => {
+    return members
+      .flatMap((member) =>
+        member.projects.map((project) => ({
+          project,
+          member: {
+            name: member.name,
+            slug: member.slug,
+          },
+        }))
+      )
+      .sort((a, b) => {
+        const byTitle = a.project.title.localeCompare(b.project.title, undefined, { sensitivity: 'base' });
+
+        if (byTitle !== 0) {
+          return byTitle;
+        }
+
+        const byMember = a.member.name.localeCompare(b.member.name, undefined, { sensitivity: 'base' });
+
+        if (byMember !== 0) {
+          return byMember;
+        }
+
+        return a.project.id.localeCompare(b.project.id);
+      });
+  }, [members]);
+
+  const statusOptions = useMemo(() => {
+    return Array.from(new Set(projectItems.map(({ project }) => project.status))).sort((a, b) =>
+      formatStatusLabel(a).localeCompare(formatStatusLabel(b), undefined, { sensitivity: 'base' })
+    );
+  }, [projectItems]);
+
+  const filteredProjectItems = useMemo(() => {
+    const query = projectSearch.trim().toLowerCase();
+
+    return projectItems.filter(({ project, member }) => {
+      if (feedbackOnly && !project.seekingFeedback) {
+        return false;
+      }
+
+      if (statusFilter !== 'all' && project.status !== statusFilter) {
+        return false;
+      }
+
+      if (query) {
+        const searchableText = [
+          project.title,
+          project.description,
+          project.feedbackPrompt,
+          project.seekingFeedback ? 'feedback wanted' : '',
+          project.status,
+          formatStatusLabel(project.status),
+          project.tags.join(' '),
+          project.type,
+          member.name,
+        ]
+          .join(' ')
+          .toLowerCase();
+
+        if (!searchableText.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [feedbackOnly, projectItems, projectSearch, statusFilter]);
 
   useEffect(() => {
+    setViewMode(getViewModeFromUrl());
+
+    function handlePopState() {
+      setViewMode(getViewModeFromUrl());
+    }
+
+    window.addEventListener('popstate', handlePopState);
+
     async function init() {
       const [{ data: { session } }, { data: membersData }] = await Promise.all([
         supabase.auth.getSession(),
@@ -85,7 +196,10 @@ export default function Home() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setLoggedIn(!!session);
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -109,18 +223,82 @@ export default function Home() {
           </Link>
         </div>
 
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-1">
+            <button
+              type="button"
+              onClick={() => updateViewMode('members')}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                viewMode === 'members'
+                  ? 'bg-white text-zinc-950 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-900'
+              }`}
+            >
+              Member View
+            </button>
+            <button
+              type="button"
+              onClick={() => updateViewMode('projects')}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                viewMode === 'projects'
+                  ? 'bg-white text-zinc-950 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-900'
+              }`}
+            >
+              Project View
+            </button>
+          </div>
+
+          {viewMode === 'projects' && (
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="h-8 border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-700"
+              >
+                <option value="all">Show all</option>
+                {statusOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {formatStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="search"
+                value={projectSearch}
+                onChange={(event) => setProjectSearch(event.target.value)}
+                placeholder="Default Search"
+                className="h-8 w-56 border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-700 placeholder:text-zinc-400"
+              />
+
+              <label className="flex h-9 items-center gap-2 px-1 text-sm font-medium text-zinc-700">
+                <input
+                  type="checkbox"
+                  checked={feedbackOnly}
+                  onChange={(event) => setFeedbackOnly(event.target.checked)}
+                  className="h-4 w-4 rounded border-zinc-300 accent-violet-600"
+                />
+                Feedback Wanted
+              </label>
+            </div>
+          )}
+        </div>
+
         {loading ? (
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-40 animate-pulse rounded-xl bg-zinc-100" />
             ))}
           </div>
+        ) : viewMode === 'projects' ? (
+          <ProjectGrid items={filteredProjectItems} />
         ) : (
           <MemberGrid members={members} />
         )}
 
         {/* Seeking feedback — community-only section */}
-        {loggedIn && feedbackProjects.length > 0 && (
+        {viewMode === 'members' && loggedIn && feedbackProjects.length > 0 && (
           <div className="mt-20">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-zinc-900">Seeking feedback</h2>

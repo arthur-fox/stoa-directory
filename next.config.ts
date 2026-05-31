@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
-  output: "export",
-  basePath: "/stoa-directory",
+  ...(isDev ? {} : { output: "export", basePath: "/stoa-directory" }),
   images: { unoptimized: true },
 };
 

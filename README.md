@@ -40,7 +40,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000/stoa-directory](http://localhost:3000/stoa-directory).
+Open [http://localhost:3000](http://localhost:3000).
 
 Copy `.env.local.example` to `.env.local` and fill in the Supabase credentials.
 

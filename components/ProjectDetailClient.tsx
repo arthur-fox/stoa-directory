@@ -220,7 +220,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Feedback form — for non-owners when seeking_feedback is true */}
         {canGiveFeedback && (
-          <section className="mt-6 rounded-xl border border-violet-200 bg-white p-6 shadow-sm">
+          <section id="feedback" className="mt-6 scroll-mt-6 rounded-xl border border-violet-200 bg-white p-6 shadow-sm">
             <h2 className="font-semibold text-zinc-900">Give feedback</h2>
             {project.feedback_prompt && (
               <p className="mt-2 rounded-lg bg-violet-50 px-3 py-2 text-sm italic text-violet-700">
@@ -297,7 +297,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Logged-out prompt to give feedback */}
         {!loggedIn && project.seeking_feedback && (
-          <div className="mt-6 rounded-xl border border-violet-100 bg-violet-50 p-5 text-center">
+          <div id="feedback" className="mt-6 scroll-mt-6 rounded-xl border border-violet-100 bg-violet-50 p-5 text-center">
             <p className="text-sm text-violet-700">
               This project is seeking feedback from Stoa members.{' '}
               <Link href="/login" className="font-medium underline hover:text-violet-900">
