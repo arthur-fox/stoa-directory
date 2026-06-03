@@ -5,6 +5,9 @@ import Link from 'next/link';
 import MemberDetailClient from '@/components/MemberDetailClient';
 import ProjectDetailClient from '@/components/ProjectDetailClient';
 
+const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
+const fd = 'var(--font-cormorant), Georgia, serif';
+
 /**
  * GitHub Pages serves this 404.html for any path without a pre-built file.
  * Intercepts /members/[slug] and /projects/[id] so new members and projects
@@ -31,11 +34,26 @@ export default function NotFound() {
   if (route?.type === 'project') return <ProjectDetailClient id={route.id} />;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white">
-      <p className="text-5xl">🏛️</p>
-      <h1 className="text-2xl font-bold text-zinc-900">Page not found</h1>
-      <p className="text-sm text-zinc-400">That page doesn&apos;t exist.</p>
-      <Link href="/" className="text-sm text-violet-600 hover:underline">
+    <main style={{
+      minHeight: '100vh',
+      background: 'var(--bg-page)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+    }}>
+      <p style={{ fontSize: 48, margin: 0 }}>🏛️</p>
+      <h1 style={{ fontFamily: fd, fontSize: 28, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>
+        Page not found
+      </h1>
+      <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+        That page doesn&apos;t exist.
+      </p>
+      <Link
+        href="/"
+        style={{ fontFamily: ff, fontSize: 12, color: 'var(--gold)', textDecoration: 'none', letterSpacing: '.3px' }}
+      >
         ← Back to directory
       </Link>
     </main>

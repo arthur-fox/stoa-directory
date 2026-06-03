@@ -5,23 +5,27 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Member } from '@/lib/types';
 import ProjectCard from '@/components/ProjectCard';
+import AgoraHeader from '@/components/AgoraHeader';
+
+const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
+const fd = 'var(--font-cormorant), Georgia, serif';
 
 function toMember(row: Record<string, unknown>): Member {
   const projects = ((row.projects as Record<string, unknown>[]) ?? [])
     .sort((a, b) => ((a.position as number) ?? 0) - ((b.position as number) ?? 0))
     .map((p) => ({
-    id: String(p.id),
-    title: String(p.title),
-    description: String(p.description ?? ''),
-    url: (p.url as string) ?? null,
-    type: String(p.type ?? 'app'),
-    tags: (p.tags as string[]) ?? [],
-    visibility: (p.visibility as 'public' | 'community') ?? 'community',
-    status: (p.status as 'wip' | 'live') ?? 'live',
-    thumbnail: (p.thumbnail as string) ?? null,
-    seekingFeedback: Boolean(p.seeking_feedback),
-    feedbackPrompt: String(p.feedback_prompt ?? ''),
-  }));
+      id: String(p.id),
+      title: String(p.title),
+      description: String(p.description ?? ''),
+      url: (p.url as string) ?? null,
+      type: String(p.type ?? 'app'),
+      tags: (p.tags as string[]) ?? [],
+      visibility: (p.visibility as 'public' | 'community') ?? 'community',
+      status: (p.status as 'wip' | 'live') ?? 'live',
+      thumbnail: (p.thumbnail as string) ?? null,
+      seekingFeedback: Boolean(p.seeking_feedback),
+      feedbackPrompt: String(p.feedback_prompt ?? ''),
+    }));
   return {
     id: String(row.id),
     slug: String(row.slug),
@@ -56,77 +60,128 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-zinc-50">
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="h-64 animate-pulse rounded-xl bg-zinc-100" />
+      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+        <AgoraHeader />
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px', width: '100%' }}>
+          <div className="agora-card" style={{ height: 200, opacity: 0.5 }} />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!member) {
     return (
-      <main className="min-h-screen bg-zinc-50">
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-          <Link href="/" className="mb-8 inline-flex text-sm text-zinc-400 hover:text-zinc-700">← Back to directory</Link>
-          <p className="mt-8 text-zinc-500">Member not found.</p>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+        <AgoraHeader />
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px', width: '100%' }}>
+          <Link href="/" style={{ fontFamily: ff, fontSize: 13, color: 'var(--gold)', textDecoration: 'none' }}>
+            ← Back to directory
+          </Link>
+          <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', marginTop: 32 }}>
+            Member not found.
+          </p>
         </div>
-      </main>
+      </div>
     );
   }
 
-  // Logged-in users see all projects; logged-out only see public
   const visibleProjects = member.projects.filter(
     (p) => loggedIn || p.visibility === 'public'
   );
   const initials = member.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
-    <main className="min-h-screen bg-zinc-50">
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-        <Link href="/" className="mb-8 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-700">
-          ← Back to directory
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      <AgoraHeader />
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px', width: '100%' }}>
+
+        <Link href="/" style={{ fontFamily: ff, fontSize: 12, color: 'var(--gold)', textDecoration: 'none', letterSpacing: '.3px' }}>
+          ← Directory
         </Link>
 
-        <div className="rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <div className="flex items-start gap-5">
+        {/* Profile card */}
+        <div className="agora-card" style={{ padding: 32, marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
             {member.avatar ? (
-              <img src={member.avatar} alt={member.name} className="h-16 w-16 rounded-full object-cover" />
+              <img
+                src={member.avatar}
+                alt={member.name}
+                style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--avatar-border)', flexShrink: 0 }}
+              />
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-200 text-lg font-semibold text-zinc-600">
+              <div style={{
+                width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+                background: 'var(--avatar-bg)', border: '1.5px solid var(--avatar-border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: fd, fontSize: 22, fontWeight: 500, color: 'var(--avatar-text)',
+              }}>
                 {initials}
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-zinc-900">{member.name}</h1>
-              {member.location && <p className="mt-0.5 text-sm text-zinc-400">{member.location}</p>}
-              <div className="mt-2 flex flex-wrap gap-3">
-                {member.social.website && (
-                  <a href={member.social.website} target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-500 hover:text-zinc-900">Website</a>
-                )}
-                {member.social.twitter && (
-                  <a href={`https://twitter.com/${member.social.twitter}`} target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-500 hover:text-zinc-900">Twitter</a>
-                )}
-                {member.social.linkedin && (
-                  <a href={`https://linkedin.com/in/${member.social.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-500 hover:text-zinc-900">LinkedIn</a>
-                )}
-              </div>
+              <h1 style={{ fontFamily: fd, fontSize: 26, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>
+                {member.name}
+              </h1>
+              {member.location && (
+                <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: '.6px' }}>
+                  {member.location}
+                </p>
+              )}
+              {(member.social.website || member.social.twitter || member.social.linkedin) && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10 }}>
+                  {member.social.website && (
+                    <a href={member.social.website} target="_blank" rel="noopener noreferrer"
+                      style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                      Website ↗
+                    </a>
+                  )}
+                  {member.social.twitter && (
+                    <a href={`https://twitter.com/${member.social.twitter}`} target="_blank" rel="noopener noreferrer"
+                      style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                      Twitter ↗
+                    </a>
+                  )}
+                  {member.social.linkedin && (
+                    <a href={`https://linkedin.com/in/${member.social.linkedin}`} target="_blank" rel="noopener noreferrer"
+                      style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                      LinkedIn ↗
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-          {member.bio && <p className="mt-6 text-zinc-600">{member.bio}</p>}
+
+          {member.bio && (
+            <p style={{ fontFamily: ff, fontSize: 14, color: 'var(--text-secondary)', marginTop: 20, lineHeight: 1.7 }}>
+              {member.bio}
+            </p>
+          )}
+
           {member.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
               {member.tags.map((tag) => (
-                <span key={tag} className="rounded-full border border-zinc-200 px-2.5 py-1 text-xs text-zinc-500">{tag}</span>
+                <span key={tag} style={{
+                  border: '1px solid var(--border-card)',
+                  borderRadius: 20,
+                  padding: '3px 10px',
+                  fontFamily: ff, fontSize: 11,
+                  color: 'var(--text-muted)',
+                }}>
+                  {tag}
+                </span>
               ))}
             </div>
           )}
         </div>
 
+        {/* Projects */}
         {visibleProjects.length > 0 && (
-          <div className="mt-8">
-            <h2 className="mb-4 text-lg font-semibold text-zinc-900">Projects</h2>
-            <div className="flex flex-col gap-3">
+          <div style={{ marginTop: 28 }}>
+            <h2 style={{ fontFamily: fd, fontSize: 20, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+              Projects
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {visibleProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
@@ -134,6 +189,6 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

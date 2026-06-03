@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
+import AgoraHeader from '@/components/AgoraHeader';
+
+const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
+const fd = 'var(--font-cormorant), Georgia, serif';
 
 interface Project {
   id: string;
@@ -86,7 +90,6 @@ export default function DashboardPage() {
       const user = session.user;
       setUser(user);
 
-      // Primary lookup: by user_id (set by trigger on first sign-in)
       const { data, error } = await supabase
         .from('members')
         .select('*, projects(*)')
@@ -95,7 +98,6 @@ export default function DashboardPage() {
 
       if (error) setLookupError(error.message);
 
-      // Fallback: look up by email and self-claim the row
       let resolved = data;
       if (!resolved && user.email) {
         const { data: byEmail, error: emailError } = await supabase
@@ -114,7 +116,6 @@ export default function DashboardPage() {
       setMember(resolved);
       setLoading(false);
 
-      // Fetch feedback received on my projects
       if (resolved && resolved.projects.length > 0) {
         const projectIds = resolved.projects.map((p: Project) => p.id);
         const { data: feedbackData } = await supabase
@@ -136,22 +137,13 @@ export default function DashboardPage() {
 
   async function uploadAvatar(file: File) {
     if (!member || !user) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError('Image must be under 5 MB.');
-      return;
-    }
+    if (file.size > 5 * 1024 * 1024) { setAvatarError('Image must be under 5 MB.'); return; }
     setUploadingAvatar(true);
     setAvatarError(null);
     const ext = file.name.split('.').pop();
     const path = `${user.id}/avatar.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(path, file, { upsert: true });
-    if (uploadError) {
-      setAvatarError(uploadError.message);
-      setUploadingAvatar(false);
-      return;
-    }
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    if (uploadError) { setAvatarError(uploadError.message); setUploadingAvatar(false); return; }
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
     await supabase.from('members').update({ avatar: publicUrl }).eq('id', member.id);
     setMember({ ...member, avatar: publicUrl });
@@ -165,7 +157,6 @@ export default function DashboardPage() {
       .from('members')
       .update({ bio: member.bio, location: member.location, social: member.social, visibility: member.visibility })
       .eq('id', member.id);
-    // Bump listed_at via security-definer RPC (enforces 7-day cooldown in the DB)
     await supabase.rpc('bump_listed_at');
     setSaving(false);
     setSaved(true);
@@ -183,10 +174,7 @@ export default function DashboardPage() {
       seeking_feedback: project.seeking_feedback,
       feedback_prompt: project.feedback_prompt || null,
     }).eq('id', project.id);
-    setMember((m) => m ? {
-      ...m,
-      projects: m.projects.map((p) => p.id === project.id ? project : p),
-    } : m);
+    setMember((m) => m ? { ...m, projects: m.projects.map((p) => p.id === project.id ? project : p) } : m);
     setEditingProject(null);
   }
 
@@ -209,7 +197,6 @@ export default function DashboardPage() {
     if (data) {
       setMember((m) => m ? { ...m, projects: [...m.projects, data] } : m);
       setNewProject(null);
-      // Adding a project is always meaningful — bump listed_at via security-definer RPC
       await supabase.rpc('bump_listed_at');
     }
   }
@@ -249,96 +236,84 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-violet-600" />
-      </main>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="agora-spinner" />
+      </div>
     );
   }
 
   if (!member) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-white">
-        <p className="text-zinc-500 text-sm">No member profile linked to <strong>{user?.email}</strong>.</p>
-        <p className="font-mono text-xs text-zinc-300">{user?.id}</p>
-        {lookupError && <p className="max-w-sm text-center font-mono text-xs text-red-400">{lookupError}</p>}
-        <p className="text-xs text-zinc-400">Ask an admin to link your account.</p>
-        <button onClick={signOut} className="mt-2 text-xs text-zinc-400 hover:text-zinc-700 underline">Sign out</button>
-      </main>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+        <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)' }}>
+          No member profile linked to <strong>{user?.email}</strong>.
+        </p>
+        <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>{user?.id}</p>
+        {lookupError && <p style={{ fontFamily: 'monospace', fontSize: 11, color: '#c0392b', maxWidth: 400, textAlign: 'center' }}>{lookupError}</p>}
+        <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)' }}>Ask an admin to link your account.</p>
+        <button onClick={signOut} style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+          Sign out
+        </button>
+      </div>
     );
   }
 
   const unreadCount = feedback.filter(fb => !fb.read_at).length;
 
   return (
-    <main className="min-h-screen bg-zinc-50">
-      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      <AgoraHeader right={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {member.is_admin && (
+            <Link href="/admin" style={{ fontFamily: ff, fontSize: 11, color: 'var(--gold)', textDecoration: 'none', letterSpacing: '.3px' }}>
+              Admin →
+            </Link>
+          )}
+          <button onClick={signOut} style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+            Sign out
+          </button>
+        </div>
+      } />
 
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Link href="/" className="text-sm text-zinc-400 hover:text-zinc-700">← Directory</Link>
-            <div className="mt-2 flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-zinc-900">My profile</h1>
-              {unreadCount > 0 && (
-                <span className="animate-pulse rounded-full bg-violet-600 px-2.5 py-0.5 text-xs font-semibold text-white">
-                  {unreadCount} new feedback
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-zinc-400">{user?.email}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {member.is_admin && (
-              <Link href="/admin" className="text-xs font-medium text-violet-600 hover:text-violet-800">
-                Admin →
-              </Link>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '36px 24px', width: '100%' }}>
+
+        {/* Page title */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h1 style={{ fontFamily: fd, fontSize: 26, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>
+              My profile
+            </h1>
+            {unreadCount > 0 && (
+              <span style={{
+                fontFamily: ff, fontSize: 10, fontWeight: 700, letterSpacing: '.5px',
+                background: 'var(--gold)', color: 'var(--bg-page)',
+                borderRadius: 20, padding: '3px 10px',
+              }}>
+                {unreadCount} new feedback
+              </span>
             )}
-            <button onClick={signOut} className="text-xs text-zinc-400 hover:text-zinc-700 underline">
-              Sign out
-            </button>
           </div>
+          <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0' }}>{user?.email}</p>
         </div>
 
-        {/* Feedback received — shown at the top when there's unread feedback */}
+        {/* Feedback — unread (shown at top) */}
         {feedback.length > 0 && unreadCount > 0 && (
-          <section ref={feedbackSectionRef} className="mb-6 rounded-xl border-2 border-violet-300 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-3">
-              <h2 className="font-semibold text-zinc-900">Feedback received</h2>
-              <span className="rounded-full bg-violet-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+          <section ref={feedbackSectionRef} className="agora-card" style={{ padding: 24, marginBottom: 16, borderColor: 'var(--gold)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <h2 style={{ fontFamily: fd, fontSize: 18, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>
+                Feedback received
+              </h2>
+              <span style={{
+                fontFamily: ff, fontSize: 10, fontWeight: 700, letterSpacing: '.5px',
+                background: 'var(--gold)', color: 'var(--bg-page)', borderRadius: 20, padding: '2px 8px',
+              }}>
                 {unreadCount} new
               </span>
             </div>
-            <div className="flex flex-col gap-3">
-              {feedback.map((fb) => (
-                <div
-                  key={fb.id}
-                  className={`rounded-lg border p-4 ${fb.read_at ? 'border-zinc-100 bg-zinc-50' : 'border-violet-200 bg-violet-50/50'}`}
-                >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {!fb.read_at && <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />}
-                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
-                        {CATEGORY_LABELS[fb.category] ?? fb.category}
-                      </span>
-                      {fb.project && <span className="text-xs text-zinc-400">on {fb.project.title}</span>}
-                    </div>
-                    <span className="text-xs text-zinc-300">{new Date(fb.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <p className="text-sm text-zinc-700">{fb.content}</p>
-                  {fb.from_member && (
-                    <p className="mt-2 text-xs text-zinc-400">
-                      from{' '}
-                      <Link href={`/members/${fb.from_member.slug}`} className="hover:text-zinc-700 hover:underline">
-                        {fb.from_member.name}
-                      </Link>
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            <FeedbackList feedback={feedback} />
             <button
               onClick={() => { markFeedbackAsRead(); }}
-              className="mt-4 text-xs text-zinc-400 hover:text-zinc-600"
+              style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 12, textDecoration: 'underline' }}
             >
               Mark all as read
             </button>
@@ -346,87 +321,87 @@ export default function DashboardPage() {
         )}
 
         {/* Profile */}
-        <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 font-semibold text-zinc-900">Profile</h2>
-          <div className="flex flex-col gap-3">
+        <section className="agora-card" style={{ padding: 24 }}>
+          <h2 style={{ fontFamily: fd, fontSize: 18, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 16px' }}>
+            Profile
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-            {/* Avatar upload */}
-            <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <button
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={uploadingAvatar}
-                className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-full focus:outline-none"
-                title="Change photo"
+                style={{ position: 'relative', width: 60, height: 60, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0, overflow: 'hidden' }}
               >
                 {member.avatar ? (
-                  <img src={member.avatar} alt={member.name} className="h-full w-full object-cover" />
+                  <img src={member.avatar} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-lg font-semibold text-zinc-600">
+                  <div style={{
+                    width: '100%', height: '100%', background: 'var(--avatar-bg)',
+                    border: '1.5px solid var(--avatar-border)', borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: fd, fontSize: 20, color: 'var(--avatar-text)',
+                  }}>
                     {member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                 )}
-                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                  {uploadingAvatar
-                    ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    : <span className="text-xs font-medium text-white">Edit</span>
-                  }
-                </div>
               </button>
               <div>
-                <p className="text-sm font-medium text-zinc-700">{member.name}</p>
+                <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-primary)', margin: 0 }}>{member.name}</p>
                 <button
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={uploadingAvatar}
-                  className="mt-0.5 text-xs text-violet-600 hover:text-violet-800 hover:underline disabled:opacity-50"
+                  style={{ fontFamily: ff, fontSize: 11, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 2 }}
                 >
                   {uploadingAvatar ? 'Uploading…' : 'Change photo'}
                 </button>
-                {avatarError && <p className="mt-1 text-xs text-red-500">{avatarError}</p>}
+                {avatarError && <p style={{ fontFamily: ff, fontSize: 11, color: '#c0392b', margin: '4px 0 0' }}>{avatarError}</p>}
               </div>
               <input
                 ref={avatarInputRef}
                 type="file"
                 accept="image/*"
-                className="hidden"
+                style={{ display: 'none' }}
                 onChange={e => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); e.target.value = ''; }}
               />
             </div>
 
-            <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-500">Bio</label>
+            <Field label="Bio">
               <textarea
                 rows={2}
                 value={member.bio}
                 onChange={(e) => setMember({ ...member, bio: e.target.value })}
-                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 resize-none"
+                className="agora-input"
+                style={{ resize: 'none' }}
               />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-500">Location</label>
+            </Field>
+            <Field label="Location">
               <input
                 type="text"
                 value={member.location ?? ''}
                 onChange={(e) => setMember({ ...member, location: e.target.value })}
-                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+                className="agora-input"
               />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {(['website', 'twitter', 'linkedin'] as const).map((key) => (
-                <div key={key}>
-                  <label className="mb-1 block text-xs font-medium text-zinc-500 capitalize">{key}</label>
+                <Field key={key} label={key}>
                   <input
                     type="text"
                     value={member.social[key] ?? ''}
                     onChange={(e) => setMember({ ...member, social: { ...member.social, [key]: e.target.value } })}
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+                    className="agora-input"
                   />
-                </div>
+                </Field>
               ))}
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5">
+
+            {/* Visibility toggle */}
+            <div className="agora-chip-row" style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
-                <p className="text-sm font-medium text-zinc-700">Profile visibility</p>
-                <p className="text-xs text-zinc-400">
+                <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-primary)', margin: 0 }}>Profile visibility</p>
+                <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>
                   {member.visibility === 'public'
                     ? 'Visible to everyone, including logged-out visitors'
                     : 'Visible to Stoa members only'}
@@ -434,19 +409,23 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={() => setMember({ ...member, visibility: member.visibility === 'public' ? 'community' : 'public' })}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  member.visibility === 'public'
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                    : 'bg-zinc-200 text-zinc-500 hover:bg-zinc-300'
-                }`}
+                style={{
+                  fontFamily: ff, fontSize: 10, fontWeight: 600, letterSpacing: '.5px', textTransform: 'uppercase',
+                  borderRadius: 20, padding: '4px 12px', cursor: 'pointer', flexShrink: 0,
+                  background: member.visibility === 'public' ? 'rgba(74,222,128,.15)' : 'var(--bg-chip)',
+                  color: member.visibility === 'public' ? '#4ade80' : 'var(--text-muted)',
+                  border: `1px solid ${member.visibility === 'public' ? '#4ade80' : 'var(--border-card)'}`,
+                }}
               >
                 {member.visibility === 'public' ? 'Public' : 'Community only'}
               </button>
             </div>
+
             <button
               onClick={saveProfile}
               disabled={saving}
-              className="self-end rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+              className="agora-btn-primary"
+              style={{ alignSelf: 'flex-end' }}
             >
               {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save profile'}
             </button>
@@ -454,30 +433,33 @@ export default function DashboardPage() {
         </section>
 
         {/* Projects */}
-        <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
+        <section className="agora-card" style={{ padding: 24, marginTop: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <h2 className="font-semibold text-zinc-900">Projects</h2>
-              <p className="mt-0.5 text-xs text-zinc-400">First 3 public projects appear on your tile. Drag to reorder.</p>
+              <h2 style={{ fontFamily: fd, fontSize: 18, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>Projects</h2>
+              <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '3px 0 0' }}>
+                First 3 public projects appear on your tile.
+              </p>
             </div>
             <button
               onClick={() => {
-                const nextPos = member.projects.length > 0
-                  ? Math.max(...member.projects.map(p => p.position)) + 1
-                  : 0;
+                const nextPos = member.projects.length > 0 ? Math.max(...member.projects.map(p => p.position)) + 1 : 0;
                 setNewProject(emptyProject(nextPos));
                 setProjectError(null);
               }}
-              className="text-xs font-medium text-violet-600 hover:text-violet-800"
+              className="agora-btn-ghost"
             >
               + Add project
             </button>
           </div>
+
           {projectError && (
-            <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 font-mono text-xs text-red-500">{projectError}</p>
+            <p style={{ fontFamily: 'monospace', fontSize: 11, color: '#c0392b', background: 'var(--bg-chip)', border: '1px solid var(--border-card)', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>
+              {projectError}
+            </p>
           )}
 
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[...member.projects].sort((a, b) => a.position - b.position).map((project, idx, sorted) =>
               editingProject === project.id ? (
                 <ProjectForm
@@ -488,33 +470,26 @@ export default function DashboardPage() {
                   onCancel={() => setEditingProject(null)}
                 />
               ) : (
-                <div key={project.id} className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5">
-                  {/* Reorder buttons */}
-                  <div className="flex flex-col">
-                    <button
-                      onClick={() => moveProject(project.id, 'up')}
-                      disabled={idx === 0}
-                      className="text-zinc-300 hover:text-zinc-500 disabled:opacity-0 leading-none"
-                      title="Move up"
-                    >▲</button>
-                    <button
-                      onClick={() => moveProject(project.id, 'down')}
-                      disabled={idx === sorted.length - 1}
-                      className="text-zinc-300 hover:text-zinc-500 disabled:opacity-0 leading-none"
-                      title="Move down"
-                    >▼</button>
+                <div key={project.id} className="agora-chip-row" style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <button onClick={() => moveProject(project.id, 'up')} disabled={idx === 0}
+                      style={{ fontFamily: ff, fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, opacity: idx === 0 ? 0 : 1 }}>▲</button>
+                    <button onClick={() => moveProject(project.id, 'down')} disabled={idx === sorted.length - 1}
+                      style={{ fontFamily: ff, fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, opacity: idx === sorted.length - 1 ? 0 : 1 }}>▼</button>
                   </div>
-                  <div className="flex flex-1 items-center justify-between">
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <p className="text-sm font-medium text-zinc-800">{project.title}</p>
-                      <p className="text-xs text-zinc-400">
+                      <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-primary)', margin: 0 }}>{project.title}</p>
+                      <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>
                         {project.visibility === 'public' ? 'Public' : 'Community only'} · {project.status}
                         {project.seeking_feedback && ' · seeking feedback'}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => setEditingProject(project.id)} className="text-xs text-zinc-400 hover:text-zinc-700">Edit</button>
-                      <button onClick={() => deleteProject(project.id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <button onClick={() => setEditingProject(project.id)}
+                        style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Edit</button>
+                      <button onClick={() => deleteProject(project.id)}
+                        style={{ fontFamily: ff, fontSize: 11, color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer' }}>Delete</button>
                     </div>
                   </div>
                 </div>
@@ -532,52 +507,69 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Feedback received — quiet state, shown at bottom once all are read */}
+        {/* Feedback — quiet state (all read, shown at bottom) */}
         {feedback.length > 0 && unreadCount === 0 && (
-          <section ref={feedbackSectionRef} className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 font-semibold text-zinc-900">Feedback received</h2>
-            <div className="flex flex-col gap-3">
-              {feedback.map((fb) => (
-                <div
-                  key={fb.id}
-                  className={`rounded-lg border p-4 ${
-                    fb.read_at
-                      ? 'border-zinc-100 bg-zinc-50'
-                      : 'border-violet-200 bg-violet-50/50'
-                  }`}
-                >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {!fb.read_at && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                      )}
-                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
-                        {CATEGORY_LABELS[fb.category] ?? fb.category}
-                      </span>
-                      {fb.project && (
-                        <span className="text-xs text-zinc-400">on {fb.project.title}</span>
-                      )}
-                    </div>
-                    <span className="text-xs text-zinc-300">
-                      {new Date(fb.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-sm text-zinc-700">{fb.content}</p>
-                  {fb.from_member && (
-                    <p className="mt-2 text-xs text-zinc-400">
-                      from{' '}
-                      <Link href={`/members/${fb.from_member.slug}`} className="hover:text-zinc-700 hover:underline">
-                        {fb.from_member.name}
-                      </Link>
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+          <section ref={feedbackSectionRef} className="agora-card" style={{ padding: 24, marginTop: 16 }}>
+            <h2 style={{ fontFamily: fd, fontSize: 18, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 16px' }}>
+              Feedback received
+            </h2>
+            <FeedbackList feedback={feedback} />
           </section>
         )}
       </div>
-    </main>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
+  return (
+    <div>
+      <label style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function FeedbackList({ feedback }: { feedback: FeedbackRow[] }) {
+  const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
+  const CATEGORY_LABELS: Record<string, string> = {
+    general: 'General', design: 'Design & UX',
+    'idea-validation': 'Idea validation', growth: 'Growth & traction', technical: 'Technical',
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {feedback.map((fb) => (
+        <div key={fb.id} className="agora-chip-row" style={{ padding: '12px 14px', borderColor: fb.read_at ? 'var(--border-section)' : 'var(--gold)', opacity: fb.read_at ? 0.7 : 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {!fb.read_at && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', flexShrink: 0 }} />}
+              <span style={{
+                fontFamily: ff, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px',
+                color: 'var(--gold)', border: '1px solid var(--gold)', borderRadius: 20, padding: '2px 8px', opacity: 0.85,
+              }}>
+                {CATEGORY_LABELS[fb.category] ?? fb.category}
+              </span>
+              {fb.project && <span style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)' }}>on {fb.project.title}</span>}
+            </div>
+            <span style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)' }}>
+              {new Date(fb.created_at).toLocaleDateString()}
+            </span>
+          </div>
+          <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>{fb.content}</p>
+          {fb.from_member && (
+            <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '8px 0 0' }}>
+              from{' '}
+              <Link href={`/members/${fb.from_member.slug}`} style={{ color: 'var(--gold)', textDecoration: 'none' }}>
+                {fb.from_member.name}
+              </Link>
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -592,80 +584,67 @@ function ProjectForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
+  const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-violet-200 bg-violet-50/40 p-3">
+    <div className="agora-chip-row" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8, borderColor: 'var(--gold)' }}>
       <input
         type="text"
         placeholder="Project title"
         value={value.title}
         onChange={(e) => onChange({ ...value, title: e.target.value })}
-        className="w-full rounded border border-zinc-200 px-3 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+        className="agora-input"
       />
       <input
         type="text"
         placeholder="Short description"
         value={value.description}
         onChange={(e) => onChange({ ...value, description: e.target.value })}
-        className="w-full rounded border border-zinc-200 px-3 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+        className="agora-input"
       />
       <input
         type="url"
         placeholder="URL (optional)"
         value={value.url ?? ''}
         onChange={(e) => onChange({ ...value, url: e.target.value })}
-        className="w-full rounded border border-zinc-200 px-3 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+        className="agora-input"
       />
-      <div className="grid grid-cols-2 gap-2">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <div>
-          <label className="mb-1 block text-xs text-zinc-500">Status</label>
-          <select
-            value={value.status}
-            onChange={(e) => onChange({ ...value, status: e.target.value as Project['status'] })}
-            className="w-full rounded border border-zinc-200 px-2 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
-          >
+          <label style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.5px' }}>Status</label>
+          <select value={value.status} onChange={(e) => onChange({ ...value, status: e.target.value as Project['status'] })} className="agora-input">
             <option value="live">Live</option>
             <option value="wip">WIP</option>
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-zinc-500">Visibility</label>
-          <select
-            value={value.visibility}
-            onChange={(e) => onChange({ ...value, visibility: e.target.value as Project['visibility'] })}
-            className="w-full rounded border border-zinc-200 px-2 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
-          >
+          <label style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.5px' }}>Visibility</label>
+          <select value={value.visibility} onChange={(e) => onChange({ ...value, visibility: e.target.value as Project['visibility'] })} className="agora-input">
             <option value="community">Community only</option>
             <option value="public">Public</option>
           </select>
         </div>
       </div>
-      <label className="flex items-center gap-2 text-xs font-medium text-zinc-600">
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: ff, fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>
         <input
           type="checkbox"
           checked={value.seeking_feedback}
           onChange={(e) => onChange({ ...value, seeking_feedback: e.target.checked })}
-          className="rounded"
         />
         Seeking feedback from the community
       </label>
       {value.seeking_feedback && (
         <textarea
           rows={2}
-          placeholder="What feedback are you looking for? e.g. Does the pricing make sense? Is the onboarding clear?"
+          placeholder="What feedback are you looking for?"
           value={value.feedback_prompt ?? ''}
           onChange={(e) => onChange({ ...value, feedback_prompt: e.target.value })}
-          className="w-full resize-none rounded border border-zinc-200 px-3 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+          className="agora-input"
+          style={{ resize: 'none' }}
         />
       )}
-      <div className="flex justify-end gap-2 pt-1">
-        <button onClick={onCancel} className="text-xs text-zinc-400 hover:text-zinc-700">Cancel</button>
-        <button
-          onClick={onSave}
-          disabled={!value.title}
-          className="rounded bg-violet-600 px-3 py-1 text-xs font-medium text-white hover:bg-violet-700 disabled:opacity-50"
-        >
-          Save
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 4 }}>
+        <button onClick={onCancel} style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Cancel</button>
+        <button onClick={onSave} disabled={!value.title} className="agora-btn-primary">Save</button>
       </div>
     </div>
   );

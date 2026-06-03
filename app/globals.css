@@ -33,25 +33,25 @@
 
 /* ─── Light theme ─── */
 [data-theme="light"] {
-  --bg-page:        #E8EEF6;
-  --bg-card:        #FFFFFF;
-  --bg-chip:        #EDF1FA;
-  --border-header:  #CDD6E6;
-  --border-card:    #CDD6E6;
-  --border-section: #CDD6E6;
+  --bg-page:        #C8D2DE;
+  --bg-card:        #D8E0EA;
+  --bg-chip:        #C2CCD8;
+  --border-header:  #B0BCC8;
+  --border-card:    #B8C4D0;
+  --border-section: #B0BCC8;
   --gold:           #A8852E;
   --chip-active:    #3D7A8A;
   --col-fill:       #1A2E58;
-  --col-opacity:    0.07;
+  --col-opacity:    0.09;
   --bar-gradient:   linear-gradient(90deg, transparent, rgba(168,133,46,.5) 15%, rgba(168,133,46,.5) 85%, transparent);
   --rule-gradient:  linear-gradient(90deg, #A8852E, rgba(168,133,46,.12) 60%, transparent);
   --text-primary:   #151E35;
   --text-secondary: #5E6E8A;
   --text-muted:     #8A97B5;
-  --avatar-bg:      #EDF1FA;
+  --avatar-bg:      #C2CCD8;
   --avatar-border:  #A8852E;
   --avatar-text:    #A8852E;
-  --skeleton-bg:    #D4DCEC;
+  --skeleton-bg:    #B8C4D0;
 }
 
 /* ─── Base ─── */
@@ -104,4 +104,83 @@ body {
   background: var(--gold) !important;
   color: var(--bg-page) !important;
   border-color: var(--gold) !important;
+}
+
+/* ─── Primary filled button ─── */
+.agora-btn-primary {
+  background: var(--gold);
+  color: var(--bg-page);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 9px 16px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.agora-btn-primary:hover:not(:disabled) { opacity: 0.85; }
+.agora-btn-primary:disabled { opacity: 0.45; cursor: default; }
+
+/* ─── Ghost button (outlined, gold on hover) ─── */
+.agora-btn-ghost {
+  background: none;
+  color: var(--gold);
+  border: 1px solid var(--border-card);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.agora-btn-ghost:hover { border-color: var(--gold); background: var(--bg-chip); }
+
+/* ─── Themed form inputs / selects / textareas ─── */
+.agora-input {
+  background: var(--bg-chip);
+  border: 1px solid var(--border-card);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+}
+.agora-input::placeholder { color: var(--text-muted); }
+.agora-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 168, 83, 0.12);
+}
+
+/* ─── Card / section box ─── */
+.agora-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+}
+
+/* ─── Chip / inner row ─── */
+.agora-chip-row {
+  background: var(--bg-chip);
+  border: 1px solid var(--border-section);
+  border-radius: 6px;
+}
+
+/* ─── Spinner ─── */
+@keyframes agora-spin { to { transform: rotate(360deg); } }
+.agora-spinner {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border-card);
+  border-top-color: var(--gold);
+  animation: agora-spin 0.8s linear infinite;
 }

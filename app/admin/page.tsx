@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import AgoraHeader from '@/components/AgoraHeader';
+
+const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
+const fd = 'var(--font-cormorant), Georgia, serif';
 
 interface MemberRow {
   id: string;
@@ -95,9 +99,9 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-violet-600" />
-      </main>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="agora-spinner" />
+      </div>
     );
   }
 
@@ -105,34 +109,36 @@ export default function AdminPage() {
   const linkedCount = members.filter(m => m.user_id).length;
 
   return (
-    <main className="min-h-screen bg-zinc-50">
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      <AgoraHeader right={
+        <Link href="/dashboard" style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', textDecoration: 'none' }}>
+          My profile →
+        </Link>
+      } />
 
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Link href="/" className="text-sm text-zinc-400 hover:text-zinc-700">← Directory</Link>
-            <h1 className="mt-2 text-2xl font-bold text-zinc-900">Admin</h1>
-            <p className="mt-1 text-xs text-zinc-400">
-              {members.length} members · {publicCount} public · {linkedCount} accounts linked
-            </p>
-          </div>
-          <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-700">
-            My profile →
-          </Link>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '36px 24px', width: '100%' }}>
+
+        {/* Page title */}
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontFamily: fd, fontSize: 26, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>Admin</h1>
+          <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0' }}>
+            {members.length} members · {publicCount} public · {linkedCount} accounts linked
+          </p>
         </div>
 
         {/* Add member */}
-        <section className="mb-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-zinc-700">Add member</h2>
-          <div className="flex gap-2">
+        <div className="agora-card" style={{ padding: 20, marginBottom: 16 }}>
+          <h2 style={{ fontFamily: ff, fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+            Add member
+          </h2>
+          <div style={{ display: 'flex', gap: 8 }}>
             <input
               type="text"
               placeholder="Full name"
               value={newMember.name}
               onChange={e => setNewMember({ ...newMember, name: e.target.value })}
               onKeyDown={e => e.key === 'Enter' && addMember()}
-              className="flex-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+              className="agora-input"
             />
             <input
               type="email"
@@ -140,46 +146,61 @@ export default function AdminPage() {
               value={newMember.email}
               onChange={e => setNewMember({ ...newMember, email: e.target.value })}
               onKeyDown={e => e.key === 'Enter' && addMember()}
-              className="flex-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+              className="agora-input"
             />
             <button
               onClick={addMember}
               disabled={adding || !newMember.name.trim()}
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+              className="agora-btn-primary"
+              style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
             >
               {adding ? 'Adding…' : 'Add'}
             </button>
           </div>
-          {addError && <p className="mt-2 text-xs text-red-500">{addError}</p>}
-        </section>
+          {addError && (
+            <p style={{ fontFamily: ff, fontSize: 11, color: '#c0392b', margin: '8px 0 0' }}>{addError}</p>
+          )}
+        </div>
 
         {/* Members table */}
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-          <table className="w-full text-sm">
+        <div className="agora-card" style={{ overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: ff, fontSize: 13 }}>
             <thead>
-              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-xs font-medium uppercase tracking-wide text-zinc-400">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Visibility</th>
-                <th className="px-4 py-3 text-center">Linked</th>
-                <th className="px-4 py-3" />
+              <tr style={{ borderBottom: '1px solid var(--border-section)', background: 'var(--bg-chip)' }}>
+                {['Name', 'Email', 'Visibility', 'Linked', ''].map((h, i) => (
+                  <th key={i} style={{
+                    padding: '10px 16px', textAlign: i === 3 ? 'center' : i === 4 ? 'right' : 'left',
+                    fontFamily: ff, fontSize: 10, fontWeight: 600,
+                    textTransform: 'uppercase', letterSpacing: '.6px',
+                    color: 'var(--text-muted)',
+                  }}>
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {members.map(m => (
-                <tr key={m.id} className="hover:bg-zinc-50/60">
-                  <td className="px-4 py-3">
-                    <span className="font-medium text-zinc-800">{m.name}</span>
+            <tbody>
+              {members.map((m, idx) => (
+                <tr key={m.id} style={{ borderBottom: idx < members.length - 1 ? '1px solid var(--border-section)' : 'none' }}>
+
+                  {/* Name */}
+                  <td style={{ padding: '10px 16px' }}>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{m.name}</span>
                     {m.is_admin && (
-                      <span className="ml-2 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
+                      <span style={{
+                        marginLeft: 8, fontFamily: ff, fontSize: 10, fontWeight: 600,
+                        color: 'var(--gold)', border: '1px solid var(--gold)',
+                        borderRadius: 20, padding: '2px 7px', opacity: 0.85,
+                      }}>
                         admin
                       </span>
                     )}
                   </td>
 
-                  <td className="px-4 py-3 text-zinc-500">
+                  {/* Email */}
+                  <td style={{ padding: '10px 16px', color: 'var(--text-secondary)' }}>
                     {editingEmail === m.id ? (
-                      <div className="flex items-center gap-1.5">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <input
                           autoFocus
                           type="email"
@@ -189,48 +210,61 @@ export default function AdminPage() {
                             if (e.key === 'Enter') saveEmail(m);
                             if (e.key === 'Escape') setEditingEmail(null);
                           }}
-                          className="w-52 rounded border border-violet-300 px-2 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-400"
+                          className="agora-input"
+                          style={{ maxWidth: 200, padding: '4px 8px', fontSize: 12 }}
                         />
-                        <button onClick={() => saveEmail(m)} className="text-xs text-violet-600 hover:text-violet-800">Save</button>
-                        <button onClick={() => setEditingEmail(null)} className="text-xs text-zinc-400 hover:text-zinc-600">✕</button>
+                        <button onClick={() => saveEmail(m)} style={{ fontFamily: ff, fontSize: 11, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>Save</button>
+                        <button onClick={() => setEditingEmail(null)} style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
                       </div>
                     ) : (
                       <button
                         onClick={() => { setEditingEmail(m.id); setEmailDraft(m.email ?? ''); }}
-                        className="group flex items-center gap-1.5 text-left hover:text-zinc-800"
+                        style={{
+                          fontFamily: ff, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer',
+                          color: m.email ? 'var(--text-secondary)' : 'var(--text-muted)',
+                          fontStyle: m.email ? 'normal' : 'italic', padding: 0,
+                        }}
                       >
-                        <span className={m.email ? '' : 'italic text-zinc-300'}>
-                          {m.email ?? 'no email'}
-                        </span>
-                        <span className="text-xs text-zinc-300 opacity-0 group-hover:opacity-100">✎</span>
+                        {m.email ?? 'no email'} <span style={{ opacity: 0.4, fontSize: 11 }}>✎</span>
                       </button>
                     )}
                   </td>
 
-                  <td className="px-4 py-3">
+                  {/* Visibility */}
+                  <td style={{ padding: '10px 16px' }}>
                     <button
                       onClick={() => toggleVisibility(m)}
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                        m.visibility === 'public'
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
-                      }`}
+                      style={{
+                        fontFamily: ff, fontSize: 10, fontWeight: 600, letterSpacing: '.5px',
+                        textTransform: 'uppercase', borderRadius: 20, padding: '3px 10px',
+                        cursor: 'pointer',
+                        background: m.visibility === 'public' ? 'rgba(74,222,128,.12)' : 'var(--bg-chip)',
+                        color: m.visibility === 'public' ? '#4ade80' : 'var(--text-muted)',
+                        border: `1px solid ${m.visibility === 'public' ? '#4ade80' : 'var(--border-card)'}`,
+                      }}
                     >
                       {m.visibility === 'public' ? 'Public' : 'Community'}
                     </button>
                   </td>
 
-                  <td className="px-4 py-3 text-center">
+                  {/* Linked indicator */}
+                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                     <span
                       title={m.user_id ? 'Account linked' : 'Not yet signed in'}
-                      className={`inline-block h-2 w-2 rounded-full ${m.user_id ? 'bg-green-400' : 'bg-zinc-200'}`}
+                      style={{
+                        display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                        background: m.user_id ? '#4ade80' : 'var(--border-card)',
+                      }}
                     />
                   </td>
 
-                  <td className="px-4 py-3 text-right">
+                  {/* Delete */}
+                  <td style={{ padding: '10px 16px', textAlign: 'right' }}>
                     <button
                       onClick={() => deleteMember(m)}
-                      className="text-xs text-zinc-300 transition-colors hover:text-red-500"
+                      style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      onMouseOver={e => (e.currentTarget.style.color = '#c0392b')}
+                      onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                     >
                       Delete
                     </button>
@@ -241,6 +275,6 @@ export default function AdminPage() {
           </table>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
