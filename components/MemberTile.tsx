@@ -12,55 +12,104 @@ function Avatar({ name, avatar }: { name: string; avatar?: string | null }) {
       <img
         src={avatar}
         alt={name}
-        className="h-8 w-8 rounded-full object-cover"
+        style={{
+          width: 38, height: 38, borderRadius: '50%', objectFit: 'cover',
+          border: '1.5px solid var(--avatar-border)', flexShrink: 0,
+        }}
       />
     );
   }
-  const initials = name
+  const ini = name
     .split(' ')
     .map((n) => n[0])
     .join('')
     .slice(0, 2)
     .toUpperCase();
   return (
-    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-600">
-      {initials}
+    <div style={{
+      width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+      border: '1.5px solid var(--avatar-border)',
+      background: 'var(--avatar-bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: 'var(--font-cormorant), Georgia, serif',
+      fontSize: 14, fontWeight: 500,
+      color: 'var(--avatar-text)',
+    }}>
+      {ini}
     </div>
   );
 }
 
 export default function MemberTile({ member }: Props) {
+  const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
+  const fd = 'var(--font-cormorant), Georgia, serif';
+
   const visibleProjects = member.projects
     .filter((p) => p.visibility === 'public')
-    .slice(0, 3); // cap at 3 so projects never push past the fixed tile height
+    .slice(0, 3);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-
-      {/* Header — only the name links to the detail page */}
-      <div className="flex items-center gap-2">
+    <div
+      className="member-card"
+      style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-card)',
+        borderRadius: 6, padding: '18px 20px',
+        display: 'flex', flexDirection: 'column', gap: 10,
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <Avatar name={member.name} avatar={member.avatar} />
-        <div className="min-w-0 flex-1">
+        <div style={{ paddingTop: 2, minWidth: 0 }}>
           <Link
             href={`/members/${member.slug}`}
-            className="block truncate text-sm font-semibold text-zinc-900 hover:underline"
+            style={{
+              display: 'block',
+              fontFamily: fd, fontSize: 17, fontWeight: 500,
+              color: 'var(--text-primary)', lineHeight: 1.2,
+              textDecoration: 'none',
+            }}
+            className="member-name-link"
           >
             {member.name}
           </Link>
           {member.location && (
-            <p className="truncate text-xs text-zinc-400">{member.location}</p>
+            <p style={{
+              fontFamily: ff, fontSize: 10,
+              color: 'var(--text-muted)', marginTop: 3,
+              textTransform: 'uppercase', letterSpacing: '.7px',
+              margin: '3px 0 0',
+            }}>
+              {member.location}
+            </p>
           )}
         </div>
       </div>
 
-      {/* Bio — always reserves 2 lines of space */}
-      <p className="mt-2.5 line-clamp-2 min-h-[2.5rem] text-xs leading-5 text-zinc-500">
-        {member.bio}
-      </p>
+      {/* Bio */}
+      {member.bio && (
+        <p style={{
+          fontFamily: ff, fontSize: 12,
+          color: 'var(--text-secondary)',
+          margin: 0, lineHeight: 1.65,
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}>
+          {member.bio}
+        </p>
+      )}
 
-      {/* Projects — pinned to bottom */}
+      {/* Projects */}
       {visibleProjects.length > 0 && (
-        <div className="mt-3 flex flex-col gap-1.5">
+        <div style={{
+          borderTop: '1px solid var(--bg-chip)',
+          paddingTop: 10,
+          display: 'flex', flexDirection: 'column', gap: 5,
+          marginTop: 'auto',
+        }}>
           {visibleProjects.map((project) => (
             <ProjectCard key={project.id} project={project} compact />
           ))}

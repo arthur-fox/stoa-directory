@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-page);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-display: var(--font-cormorant), Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Dark theme (default) ─── */
+:root,
+[data-theme="dark"] {
+  --bg-page:        #100F0B;
+  --bg-card:        #1C1915;
+  --bg-chip:        #252219;
+  --border-header:  #1E1C16;
+  --border-card:    #2E2B22;
+  --border-section: #1E1C16;
+  --gold:           #D4A853;
+  --chip-active:    #7EA0A2;
+  --col-fill:       #D4A853;
+  --col-opacity:    0.13;
+  --bar-gradient:   linear-gradient(90deg, transparent, #D4A853 15%, #D4A853 85%, transparent);
+  --rule-gradient:  linear-gradient(90deg, #D4A853, rgba(212,168,83,.15) 60%, transparent);
+  --text-primary:   #F0EBE0;
+  --text-secondary: #857A68;
+  --text-muted:     #6B6050;
+  --avatar-bg:      #23211B;
+  --avatar-border:  #D4A853;
+  --avatar-text:    #D4A853;
+  --skeleton-bg:    #1C1915;
+}
+
+/* ─── Light theme ─── */
+[data-theme="light"] {
+  --bg-page:        #E8EEF6;
+  --bg-card:        #FFFFFF;
+  --bg-chip:        #EDF1FA;
+  --border-header:  #CDD6E6;
+  --border-card:    #CDD6E6;
+  --border-section: #CDD6E6;
+  --gold:           #A8852E;
+  --chip-active:    #3D7A8A;
+  --col-fill:       #1A2E58;
+  --col-opacity:    0.07;
+  --bar-gradient:   linear-gradient(90deg, transparent, rgba(168,133,46,.5) 15%, rgba(168,133,46,.5) 85%, transparent);
+  --rule-gradient:  linear-gradient(90deg, #A8852E, rgba(168,133,46,.12) 60%, transparent);
+  --text-primary:   #151E35;
+  --text-secondary: #5E6E8A;
+  --text-muted:     #8A97B5;
+  --avatar-bg:      #EDF1FA;
+  --avatar-border:  #A8852E;
+  --avatar-text:    #A8852E;
+  --skeleton-bg:    #D4DCEC;
+}
+
+/* ─── Base ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.25s, color 0.25s;
+}
+
+/* ─── Greek column SVG silhouettes ─── */
+.agora-col {
+  fill: var(--col-fill);
+  opacity: var(--col-opacity);
+}
+
+/* ─── Member card hover ─── */
+.member-card {
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.member-card:hover {
+  border-color: var(--gold) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* ─── Feedback card hover ─── */
+.feedback-card {
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.feedback-card:hover {
+  border-color: var(--gold) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Agora button hover (gold fill) ─── */
+.agora-btn {
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.agora-btn:hover {
+  background: var(--gold) !important;
+  color: var(--bg-page) !important;
+  border-color: var(--gold) !important;
 }
