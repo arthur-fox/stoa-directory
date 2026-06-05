@@ -229,7 +229,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Feedback form */}
         {canGiveFeedback && (
-          <div className="agora-card" style={{ padding: 24, marginTop: 16 }}>
+          <div id="feedback" className="agora-card" style={{ padding: 24, marginTop: 16 }}>
             <h2 style={{ fontFamily: fd, fontSize: 20, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 12px' }}>
               Give feedback
             </h2>

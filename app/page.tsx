@@ -261,7 +261,7 @@ export default function Home() {
               {feedbackProjects.map((project) => (
                 <Link
                   key={project.id}
-                  href={`/members/${project.member.slug}`}
+                  href={`/projects/${project.id}#feedback`}
                   className="feedback-card"
                   style={{
                     display: 'block',

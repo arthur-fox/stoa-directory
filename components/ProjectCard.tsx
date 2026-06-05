@@ -104,16 +104,20 @@ export default function ProjectCard({ project, compact = false }: Props) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {project.seekingFeedback && (
-            <span style={{
-              fontFamily: ff, fontSize: 10, fontWeight: 500,
-              color: 'var(--gold)',
-              background: 'none',
-              border: '1px solid var(--gold)',
-              borderRadius: 3, padding: '2px 7px',
-              letterSpacing: '.4px',
-            }}>
+            <Link
+              href={`/projects/${project.id}#feedback`}
+              style={{
+                fontFamily: ff, fontSize: 10, fontWeight: 500,
+                color: 'var(--gold)',
+                background: 'none',
+                border: '1px solid var(--gold)',
+                borderRadius: 3, padding: '2px 7px',
+                letterSpacing: '.4px',
+                textDecoration: 'none',
+              }}
+            >
               Feedback
-            </span>
+            </Link>
           )}
           <span style={{
             fontFamily: ff, fontSize: 10,
