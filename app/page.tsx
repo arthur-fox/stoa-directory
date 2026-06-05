@@ -1,9 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Member } from '@/lib/types';
 import MemberGrid from '@/components/MemberGrid';
+import FilterBar from '@/components/FilterBar';
+import {
+  Filters,
+  SortKey,
+  defaultSort,
+  emptyFilters,
+  filterMembers,
+  sortMembers,
+  isFilterActive,
+} from '@/lib/filterMembers';
 import ThemeToggle from '@/components/ThemeToggle';
 import Link from 'next/link';
 
@@ -97,6 +107,14 @@ export default function Home() {
   const [loading, setLoading]               = useState(true);
   const [loggedIn, setLoggedIn]             = useState(false);
   const [feedbackProjects, setFeedbackProjects] = useState<FeedbackProject[]>([]);
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [sort, setSort] = useState<SortKey>(defaultSort);
+
+  const filteredMembers = useMemo(
+    () => sortMembers(filterMembers(members, filters), sort),
+    [members, filters, sort],
+  );
+  const filtersActive = isFilterActive(filters);
 
   useEffect(() => {
     async function init() {
@@ -194,7 +212,36 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <MemberGrid members={members} />
+          <>
+            {members.length > 0 && (
+              <FilterBar
+                members={members}
+                filters={filters}
+                onChange={setFilters}
+                sort={sort}
+                onSortChange={setSort}
+                onClear={() => setFilters(emptyFilters)}
+                total={members.length}
+                resultCount={filteredMembers.length}
+              />
+            )}
+            {filtersActive && filteredMembers.length === 0 ? (
+              <div className="rounded-[6px] border border-dashed border-section py-20 text-center">
+                <p className="font-sans text-[13px] text-secondary">
+                  No members match these filters.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFilters(emptyFilters)}
+                  className="mt-2 font-sans text-[12px] text-gold bg-transparent border-none cursor-pointer hover:underline"
+                >
+                  Clear filters
+                </button>
+              </div>
+            ) : (
+              <MemberGrid members={filteredMembers} />
+            )}
+          </>
         )}
 
         {/* Seeking Feedback — community-only */}
