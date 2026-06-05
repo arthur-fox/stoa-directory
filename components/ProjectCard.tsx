@@ -34,9 +34,12 @@ export default function ProjectCard({ project, compact = false }: Props) {
         </Link>
         <div className="ml-2 flex shrink-0 items-center gap-1.5">
           {project.seekingFeedback && (
-            <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-xs font-medium text-violet-600">
+            <Link
+              href={`/projects/${project.id}#feedback`}
+              className="rounded-full bg-violet-50 px-1.5 py-0.5 text-xs font-medium text-violet-600 hover:bg-violet-100"
+            >
               Feedback
-            </span>
+            </Link>
           )}
           {/* Status as a coloured dot to save space — hover shows the label */}
           <span
@@ -71,9 +74,12 @@ export default function ProjectCard({ project, compact = false }: Props) {
         </Link>
         <div className="flex shrink-0 items-center gap-1.5">
           {project.seekingFeedback && (
-            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-600">
+            <Link
+              href={`/projects/${project.id}#feedback`}
+              className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-600 hover:bg-violet-100"
+            >
               Feedback wanted
-            </span>
+            </Link>
           )}
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[project.status]}`}>
             {statusLabel[project.status]}

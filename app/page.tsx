@@ -132,7 +132,7 @@ export default function Home() {
               {feedbackProjects.map((project) => (
                 <Link
                   key={project.id}
-                  href={`/members/${project.member.slug}`}
+                  href={`/projects/${project.id}#feedback`}
                   className="flex flex-col gap-2 rounded-xl border border-violet-100 bg-violet-50/50 p-4 transition-shadow hover:shadow-md"
                 >
                   <div className="flex items-center gap-2">
