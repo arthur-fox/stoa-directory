@@ -220,7 +220,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Feedback form */}
         {canGiveFeedback && (
-          <div id="feedback" className="agora-card p-6 mt-4">
+          <div id="feedback" className="agora-card p-6 mt-4 scroll-mt-6">
             <h2 className="font-display text-[20px] font-normal text-foreground m-0 mb-3">
               Give feedback
             </h2>
@@ -304,7 +304,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Logged-out prompt */}
         {!loggedIn && project.seeking_feedback && (
-          <div className="agora-chip-row px-5 py-4 mt-4 text-center">
+          <div id="feedback" className="agora-chip-row px-5 py-4 mt-4 text-center scroll-mt-6">
             <p className="font-sans text-[13px] text-secondary m-0">
               This project is seeking feedback from Stoa members.{' '}
               <Link href="/login" className="text-gold no-underline font-medium">

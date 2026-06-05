@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Member } from '@/lib/types';
 import MemberGrid from '@/components/MemberGrid';
+import ProjectGrid from '@/components/ProjectGrid';
+import type { ProjectListItem } from '@/components/ProjectGrid';
 import FilterBar from '@/components/FilterBar';
 import {
   Filters,
@@ -31,6 +33,7 @@ function toMember(row: Record<string, unknown>): Member {
       status: (p.status as 'wip' | 'live') ?? 'live',
       thumbnail: (p.thumbnail as string) ?? null,
       seekingFeedback: Boolean(p.seeking_feedback),
+      feedbackPrompt: String(p.feedback_prompt ?? ''),
     }));
 
   return {
@@ -56,6 +59,24 @@ interface FeedbackProject {
   member: { name: string; slug: string; avatar: string | null };
 }
 
+type ViewMode = 'members' | 'projects';
+type StatusFilter = 'all' | string;
+
+const STATUS_LABELS: Record<string, string> = {
+  live: 'Live',
+  wip: 'Work in progress',
+};
+
+function formatStatusLabel(status: string) {
+  return STATUS_LABELS[status] ?? status.replaceAll('-', ' ');
+}
+
+function getViewModeFromUrl(): ViewMode {
+  if (typeof window === 'undefined') return 'members';
+  const params = new URLSearchParams(window.location.search);
+  return params.get('view') === 'projects' ? 'projects' : 'members';
+}
+
 /** Greek column SVG silhouette — purely decorative */
 const Column = () => (
   <svg width="28" height="110" viewBox="0 0 28 110" aria-hidden="true">
@@ -72,12 +93,7 @@ const Column = () => (
 
 /** Initials from a full name */
 function initials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 }
 
 /** Small avatar used in feedback cards */
@@ -103,13 +119,74 @@ function FbAvatar({ name, avatar, size = 28 }: { name: string; avatar?: string |
 }
 
 export default function Home() {
-  const [members, setMembers]               = useState<Member[]>([]);
-  const [loading, setLoading]               = useState(true);
-  const [loggedIn, setLoggedIn]             = useState(false);
+  const [members, setMembers]           = useState<Member[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [loggedIn, setLoggedIn]         = useState(false);
   const [feedbackProjects, setFeedbackProjects] = useState<FeedbackProject[]>([]);
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
-  const [sort, setSort] = useState<SortKey>(defaultSort);
 
+  // ── View toggle (members / projects) ──
+  const [viewMode, setViewMode]         = useState<ViewMode>(() => getViewModeFromUrl());
+
+  // ── Project view filters ──
+  const [feedbackOnly, setFeedbackOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [projectSearch, setProjectSearch] = useState('');
+
+  // ── Member view filters (FilterBar) ──
+  const [filters, setFilters]           = useState<Filters>(emptyFilters);
+  const [sort, setSort]                 = useState<SortKey>(defaultSort);
+
+  function updateViewMode(mode: ViewMode) {
+    setViewMode(mode);
+    const url = new URL(window.location.href);
+    if (mode === 'projects') {
+      url.searchParams.set('view', 'projects');
+    } else {
+      url.searchParams.delete('view');
+    }
+    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  }
+
+  // ── Project view derived lists ──
+  const projectItems = useMemo<ProjectListItem[]>(() => {
+    return members
+      .flatMap((member) =>
+        member.projects.map((project) => ({ project, member: { name: member.name, slug: member.slug } }))
+      )
+      .sort((a, b) => {
+        const byTitle = a.project.title.localeCompare(b.project.title, undefined, { sensitivity: 'base' });
+        if (byTitle !== 0) return byTitle;
+        const byMember = a.member.name.localeCompare(b.member.name, undefined, { sensitivity: 'base' });
+        if (byMember !== 0) return byMember;
+        return a.project.id.localeCompare(b.project.id);
+      });
+  }, [members]);
+
+  const statusOptions = useMemo(() => {
+    return Array.from(new Set(projectItems.map(({ project }) => project.status))).sort((a, b) =>
+      formatStatusLabel(a).localeCompare(formatStatusLabel(b), undefined, { sensitivity: 'base' })
+    );
+  }, [projectItems]);
+
+  const filteredProjectItems = useMemo(() => {
+    const query = projectSearch.trim().toLowerCase();
+    return projectItems.filter(({ project, member }) => {
+      if (feedbackOnly && !project.seekingFeedback) return false;
+      if (statusFilter !== 'all' && project.status !== statusFilter) return false;
+      if (query) {
+        const text = [
+          project.title, project.description, project.feedbackPrompt,
+          project.seekingFeedback ? 'feedback wanted' : '',
+          project.status, formatStatusLabel(project.status),
+          project.tags.join(' '), project.type, member.name,
+        ].join(' ').toLowerCase();
+        if (!text.includes(query)) return false;
+      }
+      return true;
+    });
+  }, [feedbackOnly, projectItems, projectSearch, statusFilter]);
+
+  // ── Member view derived list ──
   const filteredMembers = useMemo(
     () => sortMembers(filterMembers(members, filters), sort),
     [members, filters, sort],
@@ -117,6 +194,11 @@ export default function Home() {
   const filtersActive = isFilterActive(filters);
 
   useEffect(() => {
+    function handlePopState() {
+      setViewMode(getViewModeFromUrl());
+    }
+    window.addEventListener('popstate', handlePopState);
+
     async function init() {
       const [{ data: { session } }, { data: membersData }] = await Promise.all([
         supabase.auth.getSession(),
@@ -146,7 +228,10 @@ export default function Home() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setLoggedIn(!!session);
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -197,13 +282,73 @@ export default function Home() {
       {/* ══ Body ═════════════════════════════════════════════════════ */}
       <div className="max-w-[1020px] mx-auto px-10 pt-7 pb-14">
 
-        {/* Members section */}
+        {/* Section label + view toggle */}
         <div className="flex items-center gap-[10px] mb-5">
           <span className="font-sans text-[10px] font-semibold text-muted uppercase tracking-[2px] whitespace-nowrap">
-            Members
+            {viewMode === 'members' ? 'Members' : 'Projects'}
           </span>
           <div className="flex-1 h-[1px] bg-section" />
+
+          {/* Members / Projects toggle */}
+          <div className="inline-flex rounded-[6px] border border-card bg-well p-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => updateViewMode('members')}
+              className={`rounded-[4px] px-3 py-1 font-sans text-[11px] font-medium transition-colors ${
+                viewMode === 'members'
+                  ? 'bg-surface text-foreground'
+                  : 'text-muted hover:text-foreground bg-transparent'
+              }`}
+            >
+              Members
+            </button>
+            <button
+              type="button"
+              onClick={() => updateViewMode('projects')}
+              className={`rounded-[4px] px-3 py-1 font-sans text-[11px] font-medium transition-colors ${
+                viewMode === 'projects'
+                  ? 'bg-surface text-foreground'
+                  : 'text-muted hover:text-foreground bg-transparent'
+              }`}
+            >
+              Projects
+            </button>
+          </div>
         </div>
+
+        {/* Project view inline filters */}
+        {!loading && viewMode === 'projects' && (
+          <div className="flex flex-wrap items-center gap-3 mb-5">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="agora-input"
+              style={{ width: 'auto' }}
+            >
+              <option value="all">All statuses</option>
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>{formatStatusLabel(status)}</option>
+              ))}
+            </select>
+            <input
+              type="search"
+              value={projectSearch}
+              onChange={(e) => setProjectSearch(e.target.value)}
+              placeholder="Search projects…"
+              className="agora-input"
+              style={{ width: 224 }}
+            />
+            <label className="flex items-center gap-2 font-sans text-[12px] text-secondary cursor-pointer">
+              <input
+                type="checkbox"
+                checked={feedbackOnly}
+                onChange={(e) => setFeedbackOnly(e.target.checked)}
+                className="h-4 w-4 rounded border-card"
+              />
+              Feedback wanted
+            </label>
+          </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-4 gap-3">
@@ -211,6 +356,8 @@ export default function Home() {
               <div key={i} className="h-40 rounded-[6px] bg-skeleton animate-pulse" />
             ))}
           </div>
+        ) : viewMode === 'projects' ? (
+          <ProjectGrid items={filteredProjectItems} />
         ) : (
           <>
             {members.length > 0 && (
@@ -244,8 +391,8 @@ export default function Home() {
           </>
         )}
 
-        {/* Seeking Feedback — community-only */}
-        {loggedIn && feedbackProjects.length > 0 && (
+        {/* Seeking Feedback — community-only, member view only */}
+        {viewMode === 'members' && loggedIn && feedbackProjects.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center gap-[10px] mb-3">
               <span className="font-sans text-[10px] font-semibold text-gold uppercase tracking-[2px] whitespace-nowrap">
