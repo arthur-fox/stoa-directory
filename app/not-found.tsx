@@ -1,9 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import MemberDetailClient from '@/components/MemberDetailClient';
 import ProjectDetailClient from '@/components/ProjectDetailClient';
+
+type Route =
+  | { type: 'member'; slug: string }
+  | { type: 'project'; id: string }
+  | null;
+
+function matchRoute(path: string): Route {
+  const memberMatch = path.match(/\/members\/([^/]+)\/?$/);
+  if (memberMatch) return { type: 'member', slug: memberMatch[1] };
+
+  const projectMatch = path.match(/\/projects\/([^/]+)\/?$/);
+  if (projectMatch) return { type: 'project', id: projectMatch[1] };
+
+  return null;
+}
+
+const subscribe = () => () => {};
+const getClientPath = () => window.location.pathname;
+const getServerPath = () => null;
 
 /**
  * GitHub Pages serves this 404.html for any path without a pre-built file.
@@ -11,31 +30,26 @@ import ProjectDetailClient from '@/components/ProjectDetailClient';
  * work immediately after being added, without waiting for the next deploy.
  */
 export default function NotFound() {
-  const [route, setRoute] = useState<{ type: 'member'; slug: string } | { type: 'project'; id: string } | null>(null);
-  const [checked, setChecked] = useState(false);
+  const path = useSyncExternalStore(subscribe, getClientPath, getServerPath);
 
-  useEffect(() => {
-    const path = window.location.pathname;
-    const memberMatch = path.match(/\/members\/([^/]+)\/?$/);
-    const projectMatch = path.match(/\/projects\/([^/]+)\/?$/);
+  // Pre-hydration (server snapshot) — render nothing until the client path is known.
+  if (path === null) return null;
 
-    if (memberMatch) setRoute({ type: 'member', slug: memberMatch[1] });
-    else if (projectMatch) setRoute({ type: 'project', id: projectMatch[1] });
-
-    setChecked(true);
-  }, []);
-
-  if (!checked) return null;
+  const route = matchRoute(path);
 
   if (route?.type === 'member') return <MemberDetailClient slug={route.slug} />;
   if (route?.type === 'project') return <ProjectDetailClient id={route.id} />;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white">
-      <p className="text-5xl">🏛️</p>
-      <h1 className="text-2xl font-bold text-zinc-900">Page not found</h1>
-      <p className="text-sm text-zinc-400">That page doesn&apos;t exist.</p>
-      <Link href="/" className="text-sm text-violet-600 hover:underline">
+    <main className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+      <p className="text-[48px] m-0">🏛️</p>
+      <h1 className="font-display text-[28px] font-normal text-foreground m-0">
+        Page not found
+      </h1>
+      <p className="font-sans text-[13px] text-secondary m-0">
+        That page doesn&apos;t exist.
+      </p>
+      <Link href="/" className="font-sans text-[12px] text-gold no-underline tracking-[.3px]">
         ← Back to directory
       </Link>
     </main>

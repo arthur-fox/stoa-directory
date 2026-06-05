@@ -12,19 +12,22 @@ function Avatar({ name, avatar }: { name: string; avatar?: string | null }) {
       <img
         src={avatar}
         alt={name}
-        className="h-8 w-8 rounded-full object-cover"
+        className="w-[38px] h-[38px] rounded-full object-cover border-[1.5px] border-avatar shrink-0"
       />
     );
   }
-  const initials = name
+  const ini = name
     .split(' ')
     .map((n) => n[0])
     .join('')
     .slice(0, 2)
     .toUpperCase();
   return (
-    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-600">
-      {initials}
+    <div
+      className="w-[38px] h-[38px] rounded-full shrink-0 border-[1.5px] border-avatar bg-avatar flex items-center justify-center font-display text-[14px] font-medium"
+      style={{ color: 'var(--avatar-text)' }}
+    >
+      {ini}
     </div>
   );
 }
@@ -32,35 +35,45 @@ function Avatar({ name, avatar }: { name: string; avatar?: string | null }) {
 export default function MemberTile({ member }: Props) {
   const visibleProjects = member.projects
     .filter((p) => p.visibility === 'public')
-    .slice(0, 3); // cap at 3 so projects never push past the fixed tile height
+    .slice(0, 3);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-
-      {/* Header — only the name links to the detail page */}
-      <div className="flex items-center gap-2">
+    <div className="member-card bg-surface border border-card rounded-[6px] px-5 py-[18px] flex flex-col gap-[10px]">
+      {/* Header */}
+      <div className="flex gap-3 items-start">
         <Avatar name={member.name} avatar={member.avatar} />
-        <div className="min-w-0 flex-1">
+        <div className="pt-0.5 min-w-0">
           <Link
             href={`/members/${member.slug}`}
-            className="block truncate text-sm font-semibold text-zinc-900 hover:underline"
+            className="member-name-link block font-display text-[17px] font-medium text-foreground leading-tight no-underline"
           >
             {member.name}
           </Link>
           {member.location && (
-            <p className="truncate text-xs text-zinc-400">{member.location}</p>
+            <p className="font-sans text-[10px] text-muted mt-[3px] uppercase tracking-[.7px] m-0">
+              {member.location}
+            </p>
           )}
         </div>
       </div>
 
-      {/* Bio — always reserves 2 lines of space */}
-      <p className="mt-2.5 line-clamp-2 min-h-[2.5rem] text-xs leading-5 text-zinc-500">
-        {member.bio}
-      </p>
+      {/* Bio */}
+      {member.bio && (
+        <p
+          className="font-sans text-[12px] text-secondary m-0 leading-[1.65] overflow-hidden"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
+          {member.bio}
+        </p>
+      )}
 
-      {/* Projects — pinned to bottom */}
+      {/* Projects */}
       {visibleProjects.length > 0 && (
-        <div className="mt-3 flex flex-col gap-1.5">
+        <div className="border-t border-well pt-[10px] flex flex-col gap-[5px] mt-auto">
           {visibleProjects.map((project) => (
             <ProjectCard key={project.id} project={project} compact />
           ))}

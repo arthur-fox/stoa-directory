@@ -1,101 +1,127 @@
 import Link from 'next/link';
 import { Project } from '@/lib/types';
 
-const statusStyles: Record<string, string> = {
-  live: 'bg-emerald-50 text-emerald-700',
-  wip:  'bg-amber-50 text-amber-700',
-};
-
-// Compact dot colours — used in tile cards where space is tight
-const statusDot: Record<string, string> = {
-  live: 'bg-emerald-400',
-  wip:  'bg-amber-400',
-};
-
-const statusLabel: Record<string, string> = {
-  live: 'Live', wip: 'WIP',
-};
-
 interface Props {
   project: Project;
   compact?: boolean;
 }
 
+const statusLabel: Record<string, string> = {
+  live: 'Live',
+  wip: 'WIP',
+};
+
 export default function ProjectCard({ project, compact = false }: Props) {
+  // Dot and text color: feedback overrides, otherwise status-based
+  const dotColor = project.seekingFeedback
+    ? 'var(--gold)'
+    : project.status === 'live'
+    ? '#22c55e'
+    : '#f59e0b';
+
+  const chipTextColor = project.seekingFeedback
+    ? 'var(--gold)'
+    : project.status === 'live'
+    ? 'var(--chip-active)'
+    : 'var(--text-secondary)';
+
   if (compact) {
-    // Compact: title → project detail page  |  ↗ button → external URL
     return (
-      <div className="flex items-center justify-between rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-1.5 transition-colors hover:border-zinc-200 hover:bg-white">
-        <Link
-          href={`/projects/${project.id}`}
-          className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-700 hover:text-black hover:underline"
-        >
-          {project.title}
-        </Link>
-        <div className="ml-2 flex shrink-0 items-center gap-1.5">
-          {project.seekingFeedback && (
-            <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-xs font-medium text-violet-600">
-              Feedback
-            </span>
-          )}
-          {/* Status as a coloured dot to save space — hover shows the label */}
+      <div className="flex items-center justify-between bg-well border border-transparent rounded-[3px] px-[9px] py-1 transition-colors gap-1.5">
+        {/* Status dot + title */}
+        <div className="flex items-center gap-[5px] min-w-0 flex-1">
           <span
-            className={`h-2 w-2 rounded-full ${statusDot[project.status]}`}
-            title={statusLabel[project.status]}
+            className="w-[5px] h-[5px] rounded-full shrink-0"
+            style={{ background: dotColor }}
           />
-          {project.url && (
-            <a
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-5 w-5 items-center justify-center rounded text-zinc-300 transition-colors hover:bg-zinc-200 hover:text-zinc-600"
-              title={`Open ${project.title}`}
-            >
-              ↗
-            </a>
-          )}
+          <Link
+            href={`/projects/${project.id}`}
+            className="font-sans text-[11px] no-underline overflow-hidden text-ellipsis whitespace-nowrap"
+            style={{ color: chipTextColor }}
+          >
+            {project.title}
+          </Link>
         </div>
+
+        {/* External link */}
+        {project.url && (
+          <a
+            href={project.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Open ${project.title}`}
+            className="shrink-0 text-[11px] text-muted no-underline leading-none transition-colors"
+          >
+            ↗
+          </a>
+        )}
       </div>
     );
   }
 
-  // Full card: title → project detail page  |  ↗ button → external URL
+  // ── Full card ───────────────────────────────────────────────
   return (
-    <div className="group rounded-lg border border-zinc-100 bg-zinc-50 p-3 transition-colors hover:border-zinc-200 hover:bg-white">
+    <div className="bg-well border border-card rounded-[6px] px-[14px] py-3 transition-colors">
       <div className="flex items-start justify-between gap-2">
-        <Link
-          href={`/projects/${project.id}`}
-          className="text-sm font-medium text-zinc-800 hover:text-black hover:underline"
-        >
-          {project.title}
-        </Link>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <span
+            className="w-1.5 h-1.5 rounded-full shrink-0 mt-0.5"
+            style={{ background: dotColor }}
+          />
+          <Link
+            href={`/projects/${project.id}`}
+            className="font-sans text-[13px] font-medium text-foreground no-underline"
+          >
+            {project.title}
+          </Link>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
           {project.seekingFeedback && (
-            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-600">
-              Feedback wanted
-            </span>
+            <Link
+              href={`/projects/${project.id}#feedback`}
+              className="font-sans text-[10px] font-medium text-gold bg-transparent border border-gold rounded-[3px] px-[7px] py-[2px] tracking-[.4px] no-underline"
+            >
+              Feedback
+            </Link>
           )}
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[project.status]}`}>
-            {statusLabel[project.status]}
+          <span
+            className="font-sans text-[10px] bg-surface border border-card rounded-[3px] px-[7px] py-[2px]"
+            style={{ color: chipTextColor }}
+          >
+            {statusLabel[project.status] ?? project.status}
           </span>
           {project.url && (
             <a
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-5 w-5 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-200 hover:text-zinc-600"
               title={`Open ${project.title}`}
+              className="text-[12px] text-muted no-underline transition-colors"
             >
               ↗
             </a>
           )}
         </div>
       </div>
-      <p className="mt-1 line-clamp-2 text-xs text-zinc-500">{project.description}</p>
+      {project.description && (
+        <p
+          className="font-sans text-[12px] text-secondary mt-2 m-0 leading-[1.6] overflow-hidden"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
+          {project.description}
+        </p>
+      )}
       {project.tags.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {project.tags.map(tag => (
-            <span key={tag} className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
+        <div className="flex flex-wrap gap-1 mt-2">
+          {project.tags.map((tag) => (
+            <span
+              key={tag}
+              className="font-sans text-[10px] text-muted bg-surface border border-card rounded-[3px] px-[7px] py-[2px]"
+            >
               {tag}
             </span>
           ))}

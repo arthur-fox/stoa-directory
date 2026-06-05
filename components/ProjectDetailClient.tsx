@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import AgoraHeader from '@/components/AgoraHeader';
 
 interface ProjectDetail {
   id: string;
@@ -31,19 +32,12 @@ interface FeedbackRow {
   from_member: { name: string; slug: string } | null;
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  live: 'bg-emerald-50 text-emerald-700',
-  wip:  'bg-amber-50 text-amber-700',
-};
-const STATUS_LABELS: Record<string, string> = {
-  live: 'Live', wip: 'WIP',
-};
 const CATEGORIES = [
-  { value: 'general',         label: 'General feedback' },
-  { value: 'design',          label: 'Design & UX' },
-  { value: 'idea-validation', label: 'Idea validation' },
-  { value: 'growth',          label: 'Growth & traction' },
-  { value: 'technical',       label: 'Technical' },
+  { value: 'general',          label: 'General feedback' },
+  { value: 'design',           label: 'Design & UX' },
+  { value: 'idea-validation',  label: 'Idea validation' },
+  { value: 'growth',           label: 'Growth & traction' },
+  { value: 'technical',        label: 'Technical' },
 ];
 const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
   CATEGORIES.map(c => [c.value, c.label])
@@ -55,13 +49,11 @@ export default function ProjectDetailClient({ id }: { id: string }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [myMemberId, setMyMemberId] = useState<string | null>(null);
 
-  // Feedback form
   const [category, setCategory] = useState('general');
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Feedback received (project owner only)
   const [receivedFeedback, setReceivedFeedback] = useState<FeedbackRow[]>([]);
 
   useEffect(() => {
@@ -88,7 +80,6 @@ export default function ProjectDetailClient({ id }: { id: string }) {
         const myId = me?.id ?? null;
         setMyMemberId(myId);
 
-        // If owner, fetch feedback for this project
         if (myId && (data as unknown as ProjectDetail).member?.id === myId) {
           const { data: fbData } = await supabase
             .from('feedback')
@@ -97,15 +88,11 @@ export default function ProjectDetailClient({ id }: { id: string }) {
             .order('created_at', { ascending: false });
           setReceivedFeedback((fbData ?? []) as unknown as FeedbackRow[]);
 
-          // Mark all unread as read
           const unreadIds = (fbData ?? [])
             .filter((fb: { read_at: string | null }) => !fb.read_at)
             .map((fb: { id: string }) => fb.id);
           if (unreadIds.length > 0) {
-            await supabase
-              .from('feedback')
-              .update({ read_at: new Date().toISOString() })
-              .in('id', unreadIds);
+            await supabase.from('feedback').update({ read_at: new Date().toISOString() }).in('id', unreadIds);
           }
         }
       }
@@ -132,54 +119,62 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-zinc-50">
-        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-          <div className="h-64 animate-pulse rounded-xl bg-zinc-100" />
+      <div className="min-h-screen bg-background flex flex-col">
+        <AgoraHeader />
+        <div className="max-w-[640px] mx-auto px-6 py-12 w-full">
+          <div className="agora-card h-[200px] opacity-50" />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!project) {
     return (
-      <main className="min-h-screen bg-zinc-50">
-        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-          <Link href="/" className="text-sm text-zinc-400 hover:text-zinc-700">← Directory</Link>
-          <p className="mt-8 text-zinc-500">Project not found.</p>
+      <div className="min-h-screen bg-background flex flex-col">
+        <AgoraHeader />
+        <div className="max-w-[640px] mx-auto px-6 py-12 w-full">
+          <Link href="/" className="font-sans text-[13px] text-gold no-underline">← Directory</Link>
+          <p className="font-sans text-[13px] text-secondary mt-8">Project not found.</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   const isOwner = !!myMemberId && myMemberId === project.member?.id;
   const canGiveFeedback = loggedIn && !isOwner && project.seeking_feedback && !!myMemberId;
 
-  return (
-    <main className="min-h-screen bg-zinc-50">
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+  const statusColor = project.status === 'live' ? '#4ade80' : '#fbbf24';
 
-        {/* Back link */}
-        <Link
-          href={`/members/${project.member?.slug}`}
-          className="mb-8 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-700"
-        >
-          ← {project.member?.name}
-        </Link>
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <AgoraHeader />
+      <div className="max-w-[640px] mx-auto px-6 py-10 w-full">
+
+        {project.member && (
+          <Link
+            href={`/members/${project.member.slug}`}
+            className="font-sans text-[12px] text-gold no-underline tracking-[.3px]"
+          >
+            ← {project.member.name}
+          </Link>
+        )}
 
         {/* Project card */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <div className="agora-card p-8 mt-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-zinc-900">{project.title}</h1>
+              <h1 className="font-display text-[26px] font-normal text-foreground m-0">
+                {project.title}
+              </h1>
               {project.member && (
                 <Link
                   href={`/members/${project.member.slug}`}
-                  className="mt-1 inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-700"
+                  className="font-sans text-[12px] text-muted no-underline inline-flex items-center gap-1.5 mt-1.5"
                 >
                   {project.member.avatar ? (
-                    <img src={project.member.avatar} alt={project.member.name} className="h-4 w-4 rounded-full object-cover" />
+                    <img src={project.member.avatar} alt={project.member.name} className="w-4 h-4 rounded-full object-cover" />
                   ) : (
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-zinc-200 text-[9px] font-semibold text-zinc-600">
+                    <div className="w-4 h-4 rounded-full bg-avatar flex items-center justify-center text-[8px] font-display" style={{ color: 'var(--avatar-text)' }}>
                       {project.member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                   )}
@@ -187,21 +182,26 @@ export default function ProjectDetailClient({ id }: { id: string }) {
                 </Link>
               )}
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[project.status]}`}>
-                {STATUS_LABELS[project.status]}
-              </span>
-            </div>
+            <span
+              className="font-sans text-[10px] font-semibold tracking-[.6px] uppercase rounded-full px-[10px] py-[3px] shrink-0"
+              style={{ color: statusColor, border: `1px solid ${statusColor}`, opacity: 0.85 }}
+            >
+              {project.status === 'live' ? 'Live' : 'WIP'}
+            </span>
           </div>
 
           {project.description && (
-            <p className="mt-4 text-zinc-600">{project.description}</p>
+            <p className="font-sans text-[14px] text-secondary mt-4 leading-[1.7]">
+              {project.description}
+            </p>
           )}
 
           {project.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 mt-[14px]">
               {project.tags.map(tag => (
-                <span key={tag} className="rounded-full border border-zinc-200 px-2.5 py-1 text-xs text-zinc-500">{tag}</span>
+                <span key={tag} className="border border-card rounded-full px-[10px] py-[3px] font-sans text-[11px] text-muted">
+                  {tag}
+                </span>
               ))}
             </div>
           )}
@@ -211,80 +211,87 @@ export default function ProjectDetailClient({ id }: { id: string }) {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+              className="agora-btn-primary inline-flex no-underline mt-6"
             >
               Visit project ↗
             </a>
           )}
         </div>
 
-        {/* Feedback form — for non-owners when seeking_feedback is true */}
+        {/* Feedback form */}
         {canGiveFeedback && (
-          <section className="mt-6 rounded-xl border border-violet-200 bg-white p-6 shadow-sm">
-            <h2 className="font-semibold text-zinc-900">Give feedback</h2>
+          <div id="feedback" className="agora-card p-6 mt-4">
+            <h2 className="font-display text-[20px] font-normal text-foreground m-0 mb-3">
+              Give feedback
+            </h2>
             {project.feedback_prompt && (
-              <p className="mt-2 rounded-lg bg-violet-50 px-3 py-2 text-sm italic text-violet-700">
+              <p className="font-sans text-[13px] italic text-secondary leading-[1.6] bg-well border border-section rounded-[6px] px-[14px] py-[10px] m-0 mb-4">
                 &ldquo;{project.feedback_prompt}&rdquo;
               </p>
             )}
             {submitted ? (
-              <p className="mt-4 text-sm text-green-600">✓ Feedback sent — thank you!</p>
+              <p className="font-sans text-[13px]" style={{ color: '#4ade80' }}>✓ Feedback sent — thank you!</p>
             ) : (
-              <div className="mt-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-[10px]">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-zinc-500">Category</label>
-                  <select
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
-                  >
+                  <label className="font-sans text-[11px] text-muted block mb-1 uppercase tracking-[.5px]">
+                    Category
+                  </label>
+                  <select value={category} onChange={e => setCategory(e.target.value)} className="agora-input">
                     {CATEGORIES.map(c => (
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-zinc-500">Your feedback</label>
+                  <label className="font-sans text-[11px] text-muted block mb-1 uppercase tracking-[.5px]">
+                    Your feedback
+                  </label>
                   <textarea
                     rows={5}
                     value={content}
                     onChange={e => setContent(e.target.value)}
                     placeholder="Share your honest thoughts…"
-                    className="w-full resize-none rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+                    className="agora-input"
+                    style={{ resize: 'none' }}
                   />
                 </div>
                 <button
                   onClick={submitFeedback}
                   disabled={submitting || !content.trim()}
-                  className="self-end rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                  className="agora-btn-primary self-end"
                 >
                   {submitting ? 'Sending…' : 'Send feedback'}
                 </button>
               </div>
             )}
-          </section>
+          </div>
         )}
 
         {/* Feedback received — owner only */}
         {isOwner && receivedFeedback.length > 0 && (
-          <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 font-semibold text-zinc-900">Feedback received</h2>
-            <div className="flex flex-col gap-3">
+          <div className="agora-card p-6 mt-4">
+            <h2 className="font-display text-[20px] font-normal text-foreground m-0 mb-4">
+              Feedback received
+            </h2>
+            <div className="flex flex-col gap-[10px]">
               {receivedFeedback.map(fb => (
-                <div key={fb.id} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
+                <div key={fb.id} className="agora-chip-row px-[14px] py-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="font-sans text-[10px] font-semibold uppercase tracking-[.5px] text-gold border border-gold rounded-full px-2 py-[2px] opacity-85">
                       {CATEGORY_LABELS[fb.category] ?? fb.category}
                     </span>
-                    <span className="text-xs text-zinc-300">
+                    <span className="font-sans text-[11px] text-muted">
                       {new Date(fb.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-sm text-zinc-700">{fb.content}</p>
+                  <p className="font-sans text-[13px] text-secondary m-0 leading-[1.6]">
+                    {fb.content}
+                  </p>
                   {fb.from_member && (
-                    <p className="mt-2 text-xs text-zinc-400">
+                    <p className="font-sans text-[11px] text-muted mt-2 m-0">
                       from{' '}
-                      <Link href={`/members/${fb.from_member.slug}`} className="hover:text-zinc-700 hover:underline">
+                      <Link href={`/members/${fb.from_member.slug}`} className="text-gold no-underline">
                         {fb.from_member.name}
                       </Link>
                     </p>
@@ -292,21 +299,21 @@ export default function ProjectDetailClient({ id }: { id: string }) {
                 </div>
               ))}
             </div>
-          </section>
+          </div>
         )}
 
-        {/* Logged-out prompt to give feedback */}
+        {/* Logged-out prompt */}
         {!loggedIn && project.seeking_feedback && (
-          <div className="mt-6 rounded-xl border border-violet-100 bg-violet-50 p-5 text-center">
-            <p className="text-sm text-violet-700">
+          <div className="agora-chip-row px-5 py-4 mt-4 text-center">
+            <p className="font-sans text-[13px] text-secondary m-0">
               This project is seeking feedback from Stoa members.{' '}
-              <Link href="/login" className="font-medium underline hover:text-violet-900">
+              <Link href="/login" className="text-gold no-underline font-medium">
                 Log in to give feedback →
               </Link>
             </p>
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -18,10 +18,12 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white">
+    <main className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center">
-        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-violet-600" />
-        <p className="text-sm text-zinc-500">Signing you in…</p>
+        <div className="agora-spinner mx-auto mb-4" />
+        <p className="font-sans text-[13px] text-secondary">
+          Signing you in…
+        </p>
       </div>
     </main>
   );

@@ -26,10 +26,10 @@ interface Props {
   onClear: () => void;
 }
 
-const pillBase =
-  'rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer';
-const pillOn = 'bg-violet-600 text-white';
-const pillOff = 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200';
+// Pill base + on/off variants using Agora theme tokens
+const pillBase = 'rounded-full px-3 py-1 font-sans text-[11px] font-medium tracking-[.3px] transition-colors cursor-pointer border';
+const pillOn  = 'bg-gold text-background border-gold';
+const pillOff = 'bg-well text-secondary border-card hover:border-gold hover:text-foreground';
 
 // Friendly labels for the raw project.status values; falls back to the raw value.
 const STATUS_LABELS: Record<string, string> = { live: 'Live', wip: 'WIP' };
@@ -58,10 +58,10 @@ export default function FilterBar({
   }
 
   return (
-    <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+    <div className="agora-card p-4 mb-6">
       {/* Search */}
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[14px]">
           ⌕
         </span>
         <input
@@ -69,36 +69,34 @@ export default function FilterBar({
           value={filters.search}
           onChange={(e) => onChange({ ...filters, search: e.target.value })}
           placeholder="Search members or projects…"
-          className="w-full rounded-lg border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-100"
+          className="agora-input pl-9"
         />
       </div>
 
-      {/* Needs-feedback toggle + sort — its own line under the search.
-          Sort sits opposite the toggle and is always visible. */}
+      {/* Needs-feedback toggle + sort */}
       <div className="mt-3 flex items-center justify-between gap-3">
         <button
           type="button"
-          onClick={() =>
-            onChange({ ...filters, needsFeedback: !filters.needsFeedback })
-          }
+          onClick={() => onChange({ ...filters, needsFeedback: !filters.needsFeedback })}
           aria-pressed={filters.needsFeedback}
-          className={`shrink-0 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+          className={`shrink-0 rounded-[6px] border px-3 py-[7px] font-sans text-[12px] font-medium transition-colors ${
             filters.needsFeedback
-              ? 'border-violet-600 bg-violet-600 text-white'
-              : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
+              ? 'border-gold bg-gold text-background'
+              : 'border-card bg-well text-secondary hover:border-gold'
           }`}
         >
           Needs feedback
         </button>
         <div className="flex shrink-0 items-center gap-2">
-          <label htmlFor="sort" className="text-xs font-medium text-zinc-400">
+          <label htmlFor="sort" className="font-sans text-[11px] text-muted uppercase tracking-[.5px]">
             Sort
           </label>
           <select
             id="sort"
             value={sort}
             onChange={(e) => onSortChange(e.target.value as SortKey)}
-            className="rounded-lg border border-zinc-200 bg-white py-1.5 pl-2.5 pr-7 text-sm text-zinc-700 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+            className="agora-input"
+            style={{ width: 'auto' }}
           >
             {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
               <option key={key} value={key}>
@@ -112,7 +110,7 @@ export default function FilterBar({
       {/* Project-type pills — only when there's a real choice (2+ types) */}
       {types.length > 1 && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-xs font-medium text-zinc-400">Type</span>
+          <span className="mr-1 font-sans text-[10px] font-semibold text-muted uppercase tracking-[.5px]">Type</span>
           <button
             type="button"
             onClick={() => onChange({ ...filters, type: null })}
@@ -136,7 +134,7 @@ export default function FilterBar({
       {/* Project-status pills — only when there's a real choice (2+ statuses) */}
       {statuses.length > 1 && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-xs font-medium text-zinc-400">Status</span>
+          <span className="mr-1 font-sans text-[10px] font-semibold text-muted uppercase tracking-[.5px]">Status</span>
           <button
             type="button"
             onClick={() => onChange({ ...filters, status: null })}
@@ -160,7 +158,7 @@ export default function FilterBar({
       {/* Tag pills — built from member + project tags in the loaded data */}
       {tags.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-xs font-medium text-zinc-400">Tags</span>
+          <span className="mr-1 font-sans text-[10px] font-semibold text-muted uppercase tracking-[.5px]">Tags</span>
           {tags.map((tag) => {
             const on = filters.tags.includes(tag);
             return (
@@ -180,16 +178,16 @@ export default function FilterBar({
 
       {/* Result count + clear action — only while a filter is active */}
       {active && (
-        <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-3">
-          <p className="text-sm text-zinc-500">
+        <div className="mt-3 flex items-center justify-between border-t border-section pt-3">
+          <p className="font-sans text-[12px] text-secondary m-0">
             Showing{' '}
-            <span className="font-semibold text-zinc-900">{resultCount}</span> of{' '}
+            <span className="font-semibold text-foreground">{resultCount}</span> of{' '}
             {total} {total === 1 ? 'member' : 'members'}
           </p>
           <button
             type="button"
             onClick={onClear}
-            className="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline"
+            className="font-sans text-[11px] text-gold bg-transparent border-none cursor-pointer hover:underline"
           >
             Clear filters
           </button>
