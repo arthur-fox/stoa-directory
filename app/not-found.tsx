@@ -1,9 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import MemberDetailClient from '@/components/MemberDetailClient';
 import ProjectDetailClient from '@/components/ProjectDetailClient';
+
+type Route =
+  | { type: 'member'; slug: string }
+  | { type: 'project'; id: string }
+  | null;
+
+function matchRoute(path: string): Route {
+  const memberMatch = path.match(/\/members\/([^/]+)\/?$/);
+  if (memberMatch) return { type: 'member', slug: memberMatch[1] };
+
+  const projectMatch = path.match(/\/projects\/([^/]+)\/?$/);
+  if (projectMatch) return { type: 'project', id: projectMatch[1] };
+
+  return null;
+}
+
+// The pathname is a browser-only value. useSyncExternalStore returns the
+// server snapshot (null) during prerender and hydration, then the client
+// snapshot once mounted — hydration-safe, and without setting state in an
+// effect. The location never changes for a given 404 render, so the
+// subscribe callback is a no-op.
+const subscribe = () => () => {};
+const getClientPath = () => window.location.pathname;
+const getServerPath = () => null;
 
 /**
  * GitHub Pages serves this 404.html for any path without a pre-built file.
@@ -11,21 +35,12 @@ import ProjectDetailClient from '@/components/ProjectDetailClient';
  * work immediately after being added, without waiting for the next deploy.
  */
 export default function NotFound() {
-  const [route, setRoute] = useState<{ type: 'member'; slug: string } | { type: 'project'; id: string } | null>(null);
-  const [checked, setChecked] = useState(false);
+  const path = useSyncExternalStore(subscribe, getClientPath, getServerPath);
 
-  useEffect(() => {
-    const path = window.location.pathname;
-    const memberMatch = path.match(/\/members\/([^/]+)\/?$/);
-    const projectMatch = path.match(/\/projects\/([^/]+)\/?$/);
+  // Pre-hydration (server snapshot) — render nothing until the client path is known.
+  if (path === null) return null;
 
-    if (memberMatch) setRoute({ type: 'member', slug: memberMatch[1] });
-    else if (projectMatch) setRoute({ type: 'project', id: projectMatch[1] });
-
-    setChecked(true);
-  }, []);
-
-  if (!checked) return null;
+  const route = matchRoute(path);
 
   if (route?.type === 'member') return <MemberDetailClient slug={route.slug} />;
   if (route?.type === 'project') return <ProjectDetailClient id={route.id} />;
