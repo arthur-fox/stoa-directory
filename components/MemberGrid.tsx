@@ -8,12 +8,14 @@ interface Props {
 export default function MemberGrid({ members }: Props) {
   if (members.length === 0) {
     return (
-      <p className="py-24 text-center text-zinc-400">No members to display.</p>
+      <p className="py-24 text-center font-sans text-[14px] text-muted">
+        No members to display.
+      </p>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 [grid-auto-rows:240px]">
+    <div className="grid grid-cols-4 gap-3">
       {members.map((member) => (
         <MemberTile key={member.id} member={member} />
       ))}

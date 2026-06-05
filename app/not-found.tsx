@@ -20,11 +20,6 @@ function matchRoute(path: string): Route {
   return null;
 }
 
-// The pathname is a browser-only value. useSyncExternalStore returns the
-// server snapshot (null) during prerender and hydration, then the client
-// snapshot once mounted — hydration-safe, and without setting state in an
-// effect. The location never changes for a given 404 render, so the
-// subscribe callback is a no-op.
 const subscribe = () => () => {};
 const getClientPath = () => window.location.pathname;
 const getServerPath = () => null;
@@ -46,11 +41,15 @@ export default function NotFound() {
   if (route?.type === 'project') return <ProjectDetailClient id={route.id} />;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white">
-      <p className="text-5xl">🏛️</p>
-      <h1 className="text-2xl font-bold text-zinc-900">Page not found</h1>
-      <p className="text-sm text-zinc-400">That page doesn&apos;t exist.</p>
-      <Link href="/" className="text-sm text-violet-600 hover:underline">
+    <main className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+      <p className="text-[48px] m-0">🏛️</p>
+      <h1 className="font-display text-[28px] font-normal text-foreground m-0">
+        Page not found
+      </h1>
+      <p className="font-sans text-[13px] text-secondary m-0">
+        That page doesn&apos;t exist.
+      </p>
+      <Link href="/" className="font-sans text-[12px] text-gold no-underline tracking-[.3px]">
         ← Back to directory
       </Link>
     </main>
