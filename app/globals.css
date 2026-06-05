@@ -46,29 +46,33 @@
   --avatar-border:  #D4A853;
   --avatar-text:    #D4A853;
   --skeleton-bg:    #1C1915;
+  --status-live:    #22c55e;
+  --status-wip:     #f59e0b;
 }
 
 /* ─── Light theme ─── */
 [data-theme="light"] {
-  --bg-page:        #C8D2DE;
-  --bg-card:        #D8E0EA;
-  --bg-chip:        #C2CCD8;
-  --border-header:  #B0BCC8;
-  --border-card:    #B8C4D0;
-  --border-section: #B0BCC8;
-  --gold:           #A8852E;
-  --chip-active:    #3D7A8A;
-  --col-fill:       #1A2E58;
-  --col-opacity:    0.09;
-  --bar-gradient:   linear-gradient(90deg, transparent, rgba(168,133,46,.5) 15%, rgba(168,133,46,.5) 85%, transparent);
-  --rule-gradient:  linear-gradient(90deg, #A8852E, rgba(168,133,46,.12) 60%, transparent);
-  --text-primary:   #151E35;
-  --text-secondary: #5E6E8A;
-  --text-muted:     #8A97B5;
-  --avatar-bg:      #C2CCD8;
-  --avatar-border:  #A8852E;
-  --avatar-text:    #A8852E;
-  --skeleton-bg:    #B8C4D0;
+  --bg-page:        #FDFAF5;
+  --bg-card:        #FFFFFF;
+  --bg-chip:        #F5F1EB;
+  --border-header:  #EAE5DC;
+  --border-card:    #E8E3DA;
+  --border-section: #EDE8DF;
+  --gold:           #9A7B28;
+  --chip-active:    #4A7A7C;
+  --col-fill:       #2C2010;
+  --col-opacity:    0.07;
+  --bar-gradient:   linear-gradient(90deg, transparent, rgba(154,123,40,.45) 15%, rgba(154,123,40,.45) 85%, transparent);
+  --rule-gradient:  linear-gradient(90deg, #9A7B28, rgba(154,123,40,.12) 60%, transparent);
+  --text-primary:   #1C1710;
+  --text-secondary: #5A5040;
+  --text-muted:     #8A7A60;
+  --avatar-bg:      #EDE8DF;
+  --avatar-border:  #9A7B28;
+  --avatar-text:    #9A7B28;
+  --skeleton-bg:    #EDE8DF;
+  --status-live:    #16a34a;
+  --status-wip:     #b45309;
 }
 
 /* ─── Base ─── */

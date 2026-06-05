@@ -38,7 +38,7 @@ export default function MemberTile({ member }: Props) {
     .slice(0, 3);
 
   return (
-    <div className="member-card bg-surface border border-card rounded-[6px] px-5 py-[18px] flex flex-col gap-[10px] h-full">
+    <div className="member-card bg-surface border border-card rounded-[6px] px-5 py-[18px] flex flex-col gap-[10px]">
       {/* Header */}
       <div className="flex gap-3 items-start">
         <Avatar name={member.name} avatar={member.avatar} />

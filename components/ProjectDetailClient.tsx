@@ -143,7 +143,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
   const isOwner = !!myMemberId && myMemberId === project.member?.id;
   const canGiveFeedback = loggedIn && !isOwner && project.seeking_feedback && !!myMemberId;
 
-  const statusColor = project.status === 'live' ? '#4ade80' : '#fbbf24';
+  const statusColor = project.status === 'live' ? 'var(--status-live)' : 'var(--status-wip)';
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -230,7 +230,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
               </p>
             )}
             {submitted ? (
-              <p className="font-sans text-[13px]" style={{ color: '#4ade80' }}>✓ Feedback sent — thank you!</p>
+              <p className="font-sans text-[13px]" style={{ color: 'var(--status-live)' }}>✓ Feedback sent — thank you!</p>
             ) : (
               <div className="flex flex-col gap-[10px]">
                 <div>

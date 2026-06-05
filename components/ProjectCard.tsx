@@ -16,8 +16,8 @@ export default function ProjectCard({ project, compact = false }: Props) {
   const dotColor = project.seekingFeedback
     ? 'var(--gold)'
     : project.status === 'live'
-    ? '#22c55e'
-    : '#f59e0b';
+    ? 'var(--status-live)'
+    : 'var(--status-wip)';
 
   const chipTextColor = project.seekingFeedback
     ? 'var(--gold)'

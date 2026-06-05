@@ -243,8 +243,14 @@ export default function Home() {
         {/* Top accent bar */}
         <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'var(--bar-gradient)' }} />
 
-        {/* Column silhouettes */}
-        <div className="absolute top-0 left-0 right-0 bottom-0 flex justify-between items-start px-6 pointer-events-none">
+        {/* Column silhouettes — masked out in the centre so they don't overlap the text */}
+        <div
+          className="absolute top-0 left-0 right-0 bottom-0 flex justify-between items-start px-6 pointer-events-none"
+          style={{
+            maskImage: 'linear-gradient(to right, black 0%, black 18%, transparent 32%, transparent 68%, black 82%, black 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, black 0%, black 18%, transparent 32%, transparent 68%, black 82%, black 100%)',
+          }}
+        >
           {Array.from({ length: 10 }, (_, i) => <Column key={i} />)}
         </div>
 
@@ -255,7 +261,7 @@ export default function Home() {
               <div className="flex items-center gap-[10px] mb-2">
                 <span className="text-[22px]">🏛️</span>
                 <h1 className="font-display text-[30px] font-normal text-foreground m-0 tracking-[.3px]">
-                  Stoa Member Project Directory
+                  Stoa Directory
                 </h1>
               </div>
               <p className="font-sans text-[13px] text-muted m-0">

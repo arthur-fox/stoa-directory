@@ -12,8 +12,8 @@ interface Props {
 
 // Status dot colors — same convention as ProjectCard
 const statusDot: Record<string, string> = {
-  live: '#22c55e',
-  wip:  '#f59e0b',
+  live: 'var(--status-live)',
+  wip:  'var(--status-wip)',
 };
 
 const statusLabel: Record<string, string> = {

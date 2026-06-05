@@ -15,7 +15,7 @@ export default function MemberGrid({ members }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-4 gap-3 items-stretch">
       {members.map((member) => (
         <MemberTile key={member.id} member={member} />
       ))}
