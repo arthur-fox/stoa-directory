@@ -7,8 +7,11 @@ import MemberGrid from '@/components/MemberGrid';
 import FilterBar from '@/components/FilterBar';
 import {
   Filters,
+  SortKey,
+  defaultSort,
   emptyFilters,
   filterMembers,
+  sortMembers,
   isFilterActive,
 } from '@/lib/filterMembers';
 import Link from 'next/link';
@@ -66,10 +69,11 @@ export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [feedbackProjects, setFeedbackProjects] = useState<FeedbackProject[]>([]);
   const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [sort, setSort] = useState<SortKey>(defaultSort);
 
   const filteredMembers = useMemo(
-    () => filterMembers(members, filters),
-    [members, filters],
+    () => sortMembers(filterMembers(members, filters), sort),
+    [members, filters, sort],
   );
   const filtersActive = isFilterActive(filters);
 
@@ -136,6 +140,8 @@ export default function Home() {
                 members={members}
                 filters={filters}
                 onChange={setFilters}
+                sort={sort}
+                onSortChange={setSort}
                 onClear={() => setFilters(emptyFilters)}
                 total={members.length}
                 resultCount={filteredMembers.length}

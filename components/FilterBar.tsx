@@ -4,20 +4,25 @@ import { useMemo } from 'react';
 import { Member } from '@/lib/types';
 import {
   Filters,
+  SortKey,
+  SORT_LABELS,
   deriveFilterOptions,
   isFilterActive,
 } from '@/lib/filterMembers';
 
 interface Props {
-  /** Full loaded list — used to derive the available type/tag options. */
+  /** Full loaded list — used to derive the available type/status/tag options. */
   members: Member[];
   filters: Filters;
   onChange: (next: Filters) => void;
+  /** Sort key, applied after filtering. Independent of the filters. */
+  sort: SortKey;
+  onSortChange: (next: SortKey) => void;
   /** Total loaded members (denominator for the result count). */
   total: number;
   /** Members remaining after filtering (numerator). */
   resultCount: number;
-  /** Reset every filter back to its empty state. */
+  /** Reset every filter back to its empty state (leaves sort alone). */
   onClear: () => void;
 }
 
@@ -26,15 +31,23 @@ const pillBase =
 const pillOn = 'bg-violet-600 text-white';
 const pillOff = 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200';
 
+// Friendly labels for the raw project.status values; falls back to the raw value.
+const STATUS_LABELS: Record<string, string> = { live: 'Live', wip: 'WIP' };
+
 export default function FilterBar({
   members,
   filters,
   onChange,
+  sort,
+  onSortChange,
   total,
   resultCount,
   onClear,
 }: Props) {
-  const { types, tags } = useMemo(() => deriveFilterOptions(members), [members]);
+  const { types, statuses, tags } = useMemo(
+    () => deriveFilterOptions(members),
+    [members],
+  );
   const active = isFilterActive(filters);
 
   function toggleTag(tag: string) {
@@ -60,8 +73,9 @@ export default function FilterBar({
         />
       </div>
 
-      {/* Needs-feedback toggle — its own line under the search */}
-      <div className="mt-3">
+      {/* Needs-feedback toggle + sort — its own line under the search.
+          Sort sits opposite the toggle and is always visible. */}
+      <div className="mt-3 flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() =>
@@ -76,6 +90,23 @@ export default function FilterBar({
         >
           Needs feedback
         </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <label htmlFor="sort" className="text-xs font-medium text-zinc-400">
+            Sort
+          </label>
+          <select
+            id="sort"
+            value={sort}
+            onChange={(e) => onSortChange(e.target.value as SortKey)}
+            className="rounded-lg border border-zinc-200 bg-white py-1.5 pl-2.5 pr-7 text-sm text-zinc-700 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          >
+            {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+              <option key={key} value={key}>
+                {SORT_LABELS[key]}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Project-type pills — only when there's a real choice (2+ types) */}
@@ -97,6 +128,30 @@ export default function FilterBar({
               className={`${pillBase} ${filters.type === t ? pillOn : pillOff}`}
             >
               {t}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Project-status pills — only when there's a real choice (2+ statuses) */}
+      {statuses.length > 1 && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-xs font-medium text-zinc-400">Status</span>
+          <button
+            type="button"
+            onClick={() => onChange({ ...filters, status: null })}
+            className={`${pillBase} ${filters.status === null ? pillOn : pillOff}`}
+          >
+            All
+          </button>
+          {statuses.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => onChange({ ...filters, status: s })}
+              className={`${pillBase} ${filters.status === s ? pillOn : pillOff}`}
+            >
+              {STATUS_LABELS[s] ?? s}
             </button>
           ))}
         </div>
