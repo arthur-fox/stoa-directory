@@ -6,9 +6,6 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import AgoraHeader from '@/components/AgoraHeader';
 
-const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-const fd = 'var(--font-cormorant), Georgia, serif';
-
 interface MemberRow {
   id: string;
   slug: string;
@@ -99,7 +96,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="agora-spinner" />
       </div>
     );
@@ -109,29 +106,29 @@ export default function AdminPage() {
   const linkedCount = members.filter(m => m.user_id).length;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-background flex flex-col">
       <AgoraHeader right={
-        <Link href="/dashboard" style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', textDecoration: 'none' }}>
+        <Link href="/dashboard" className="font-sans text-[11px] text-muted no-underline">
           My profile →
         </Link>
       } />
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '36px 24px', width: '100%' }}>
+      <div className="max-w-[900px] mx-auto px-6 py-9 w-full">
 
         {/* Page title */}
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontFamily: fd, fontSize: 26, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>Admin</h1>
-          <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0' }}>
+        <div className="mb-6">
+          <h1 className="font-display text-[26px] font-normal text-foreground m-0">Admin</h1>
+          <p className="font-sans text-[11px] text-muted mt-1 m-0">
             {members.length} members · {publicCount} public · {linkedCount} accounts linked
           </p>
         </div>
 
         {/* Add member */}
-        <div className="agora-card" style={{ padding: 20, marginBottom: 16 }}>
-          <h2 style={{ fontFamily: ff, fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+        <div className="agora-card p-5 mb-4">
+          <h2 className="font-sans text-[11px] font-semibold text-muted m-0 mb-3 uppercase tracking-[.5px]">
             Add member
           </h2>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-2">
             <input
               type="text"
               placeholder="Full name"
@@ -151,29 +148,27 @@ export default function AdminPage() {
             <button
               onClick={addMember}
               disabled={adding || !newMember.name.trim()}
-              className="agora-btn-primary"
-              style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+              className="agora-btn-primary shrink-0 whitespace-nowrap"
             >
               {adding ? 'Adding…' : 'Add'}
             </button>
           </div>
           {addError && (
-            <p style={{ fontFamily: ff, fontSize: 11, color: '#c0392b', margin: '8px 0 0' }}>{addError}</p>
+            <p className="font-sans text-[11px] mt-2 m-0" style={{ color: '#c0392b' }}>{addError}</p>
           )}
         </div>
 
         {/* Members table */}
-        <div className="agora-card" style={{ overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: ff, fontSize: 13 }}>
+        <div className="agora-card overflow-hidden">
+          <table className="w-full border-collapse font-sans text-[13px]">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-section)', background: 'var(--bg-chip)' }}>
+              <tr className="border-b border-section bg-well">
                 {['Name', 'Email', 'Visibility', 'Linked', ''].map((h, i) => (
-                  <th key={i} style={{
-                    padding: '10px 16px', textAlign: i === 3 ? 'center' : i === 4 ? 'right' : 'left',
-                    fontFamily: ff, fontSize: 10, fontWeight: 600,
-                    textTransform: 'uppercase', letterSpacing: '.6px',
-                    color: 'var(--text-muted)',
-                  }}>
+                  <th
+                    key={i}
+                    className="px-4 py-[10px] font-sans text-[10px] font-semibold uppercase tracking-[.6px] text-muted"
+                    style={{ textAlign: i === 3 ? 'center' : i === 4 ? 'right' : 'left' }}
+                  >
                     {h}
                   </th>
                 ))}
@@ -181,26 +176,22 @@ export default function AdminPage() {
             </thead>
             <tbody>
               {members.map((m, idx) => (
-                <tr key={m.id} style={{ borderBottom: idx < members.length - 1 ? '1px solid var(--border-section)' : 'none' }}>
+                <tr key={m.id} className={idx < members.length - 1 ? 'border-b border-section' : ''}>
 
                   {/* Name */}
-                  <td style={{ padding: '10px 16px' }}>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{m.name}</span>
+                  <td className="px-4 py-[10px]">
+                    <span className="text-foreground font-medium">{m.name}</span>
                     {m.is_admin && (
-                      <span style={{
-                        marginLeft: 8, fontFamily: ff, fontSize: 10, fontWeight: 600,
-                        color: 'var(--gold)', border: '1px solid var(--gold)',
-                        borderRadius: 20, padding: '2px 7px', opacity: 0.85,
-                      }}>
+                      <span className="ml-2 font-sans text-[10px] font-semibold text-gold border border-gold rounded-full px-[7px] py-[2px] opacity-85">
                         admin
                       </span>
                     )}
                   </td>
 
                   {/* Email */}
-                  <td style={{ padding: '10px 16px', color: 'var(--text-secondary)' }}>
+                  <td className="px-4 py-[10px] text-secondary">
                     {editingEmail === m.id ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div className="flex items-center gap-1.5">
                         <input
                           autoFocus
                           type="email"
@@ -213,31 +204,29 @@ export default function AdminPage() {
                           className="agora-input"
                           style={{ maxWidth: 200, padding: '4px 8px', fontSize: 12 }}
                         />
-                        <button onClick={() => saveEmail(m)} style={{ fontFamily: ff, fontSize: 11, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>Save</button>
-                        <button onClick={() => setEditingEmail(null)} style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                        <button onClick={() => saveEmail(m)} className="font-sans text-[11px] text-gold bg-transparent border-none cursor-pointer">Save</button>
+                        <button onClick={() => setEditingEmail(null)} className="font-sans text-[11px] text-muted bg-transparent border-none cursor-pointer">✕</button>
                       </div>
                     ) : (
                       <button
                         onClick={() => { setEditingEmail(m.id); setEmailDraft(m.email ?? ''); }}
+                        className="font-sans text-[13px] bg-transparent border-none cursor-pointer p-0"
                         style={{
-                          fontFamily: ff, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer',
                           color: m.email ? 'var(--text-secondary)' : 'var(--text-muted)',
-                          fontStyle: m.email ? 'normal' : 'italic', padding: 0,
+                          fontStyle: m.email ? 'normal' : 'italic',
                         }}
                       >
-                        {m.email ?? 'no email'} <span style={{ opacity: 0.4, fontSize: 11 }}>✎</span>
+                        {m.email ?? 'no email'} <span className="opacity-40 text-[11px]">✎</span>
                       </button>
                     )}
                   </td>
 
                   {/* Visibility */}
-                  <td style={{ padding: '10px 16px' }}>
+                  <td className="px-4 py-[10px]">
                     <button
                       onClick={() => toggleVisibility(m)}
+                      className="font-sans text-[10px] font-semibold tracking-[.5px] uppercase rounded-full px-[10px] py-[3px] cursor-pointer"
                       style={{
-                        fontFamily: ff, fontSize: 10, fontWeight: 600, letterSpacing: '.5px',
-                        textTransform: 'uppercase', borderRadius: 20, padding: '3px 10px',
-                        cursor: 'pointer',
                         background: m.visibility === 'public' ? 'rgba(74,222,128,.12)' : 'var(--bg-chip)',
                         color: m.visibility === 'public' ? '#4ade80' : 'var(--text-muted)',
                         border: `1px solid ${m.visibility === 'public' ? '#4ade80' : 'var(--border-card)'}`,
@@ -248,23 +237,19 @@ export default function AdminPage() {
                   </td>
 
                   {/* Linked indicator */}
-                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                  <td className="px-4 py-[10px] text-center">
                     <span
                       title={m.user_id ? 'Account linked' : 'Not yet signed in'}
-                      style={{
-                        display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
-                        background: m.user_id ? '#4ade80' : 'var(--border-card)',
-                      }}
+                      className="inline-block w-2 h-2 rounded-full"
+                      style={{ background: m.user_id ? '#4ade80' : 'var(--border-card)' }}
                     />
                   </td>
 
                   {/* Delete */}
-                  <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                  <td className="px-4 py-[10px] text-right">
                     <button
                       onClick={() => deleteMember(m)}
-                      style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-                      onMouseOver={e => (e.currentTarget.style.color = '#c0392b')}
-                      onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                      className="font-sans text-[11px] text-muted bg-transparent border-none cursor-pointer hover:text-red-600 transition-colors"
                     >
                       Delete
                     </button>

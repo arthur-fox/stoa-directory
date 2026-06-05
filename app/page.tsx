@@ -77,23 +77,16 @@ function FbAvatar({ name, avatar, size = 28 }: { name: string; avatar?: string |
       <img
         src={avatar}
         alt={name}
-        style={{
-          width: size, height: size, borderRadius: '50%', objectFit: 'cover',
-          border: '1.5px solid var(--avatar-border)', flexShrink: 0,
-        }}
+        className="rounded-full object-cover border-[1.5px] border-avatar shrink-0"
+        style={{ width: size, height: size }}
       />
     );
   }
   return (
-    <div style={{
-      width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      border: '1.5px solid var(--avatar-border)',
-      background: 'var(--avatar-bg)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'var(--font-cormorant), Georgia, serif',
-      fontSize: size * 0.38, fontWeight: 500,
-      color: 'var(--avatar-text)',
-    }}>
+    <div
+      className="rounded-full shrink-0 border-[1.5px] border-avatar bg-avatar flex items-center justify-center font-display font-medium"
+      style={{ width: size, height: size, fontSize: size * 0.38, color: 'var(--avatar-text)' }}
+    >
       {initials(name)}
     </div>
   );
@@ -138,68 +131,40 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-  const fd = 'var(--font-cormorant), Georgia, serif';
-
   return (
-    <main style={{ background: 'var(--bg-page)', minHeight: '100vh' }}>
+    <main className="bg-background min-h-screen">
 
       {/* ══ Header ══════════════════════════════════════════════════ */}
-      <header style={{
-        position: 'relative',
-        padding: '32px 40px 24px',
-        borderBottom: '1px solid var(--border-header)',
-        overflow: 'hidden',
-      }}>
+      <header className="relative px-10 pt-8 pb-6 border-b border-header overflow-hidden">
         {/* Top accent bar */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-          background: 'var(--bar-gradient)',
-        }} />
+        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'var(--bar-gradient)' }} />
 
         {/* Column silhouettes */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-          padding: '0 24px', pointerEvents: 'none',
-        }}>
+        <div className="absolute top-0 left-0 right-0 bottom-0 flex justify-between items-start px-6 pointer-events-none">
           {Array.from({ length: 10 }, (_, i) => <Column key={i} />)}
         </div>
 
         {/* Content */}
-        <div style={{ position: 'relative', maxWidth: 1020, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+        <div className="relative max-w-[1020px] mx-auto">
+          <div className="flex justify-between items-start gap-4">
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <span style={{ fontSize: 22 }}>🏛️</span>
-                <h1 style={{
-                  fontFamily: fd, fontSize: 30, fontWeight: 400,
-                  color: 'var(--text-primary)', margin: 0, letterSpacing: '.3px',
-                }}>
+              <div className="flex items-center gap-[10px] mb-2">
+                <span className="text-[22px]">🏛️</span>
+                <h1 className="font-display text-[30px] font-normal text-foreground m-0 tracking-[.3px]">
                   Stoa Member Project Directory
                 </h1>
               </div>
-              <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+              <p className="font-sans text-[13px] text-muted m-0">
                 Meet the people in our community and what they&apos;re building.
               </p>
             </div>
 
             {/* Header buttons */}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+            <div className="flex gap-2 items-center shrink-0">
               <ThemeToggle />
               <Link
                 href={loggedIn ? '/dashboard' : '/login'}
-                className="agora-btn"
-                style={{
-                  fontFamily: ff, fontSize: 11, fontWeight: 500,
-                  color: 'var(--gold)',
-                  background: 'none',
-                  border: '1px solid var(--border-card)',
-                  borderRadius: 4, padding: '8px 14px',
-                  letterSpacing: '.5px', textTransform: 'uppercase',
-                  textDecoration: 'none', whiteSpace: 'nowrap',
-                  display: 'inline-block',
-                }}
+                className="agora-btn font-sans text-[11px] font-medium text-gold bg-transparent border border-card rounded px-[14px] py-2 tracking-[.5px] uppercase no-underline whitespace-nowrap inline-block"
               >
                 {loggedIn ? 'Edit profile →' : 'Member login →'}
               </Link>
@@ -207,33 +172,25 @@ export default function Home() {
           </div>
 
           {/* Gold rule */}
-          <div style={{ marginTop: 20, height: 1, background: 'var(--rule-gradient)' }} />
+          <div className="mt-5 h-[1px]" style={{ background: 'var(--rule-gradient)' }} />
         </div>
       </header>
 
       {/* ══ Body ═════════════════════════════════════════════════════ */}
-      <div style={{ maxWidth: 1020, margin: '0 auto', padding: '28px 40px 56px' }}>
+      <div className="max-w-[1020px] mx-auto px-10 pt-7 pb-14">
 
         {/* Members section */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <span style={{
-            fontFamily: ff, fontSize: 10, fontWeight: 600,
-            color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 2,
-            whiteSpace: 'nowrap',
-          }}>
+        <div className="flex items-center gap-[10px] mb-5">
+          <span className="font-sans text-[10px] font-semibold text-muted uppercase tracking-[2px] whitespace-nowrap">
             Members
           </span>
-          <div style={{ flex: 1, height: 1, background: 'var(--border-section)' }} />
+          <div className="flex-1 h-[1px] bg-section" />
         </div>
 
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          <div className="grid grid-cols-4 gap-3">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} style={{
-                height: 160, borderRadius: 6,
-                background: 'var(--skeleton-bg)',
-                animation: 'pulse 1.5s ease-in-out infinite',
-              }} />
+              <div key={i} className="h-40 rounded-[6px] bg-skeleton animate-pulse" />
             ))}
           </div>
         ) : (
@@ -242,70 +199,39 @@ export default function Home() {
 
         {/* Seeking Feedback — community-only */}
         {loggedIn && feedbackProjects.length > 0 && (
-          <div style={{ marginTop: 48 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <span style={{
-                fontFamily: ff, fontSize: 10, fontWeight: 600,
-                color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: 2,
-                whiteSpace: 'nowrap',
-              }}>
+          <div className="mt-12">
+            <div className="flex items-center gap-[10px] mb-3">
+              <span className="font-sans text-[10px] font-semibold text-gold uppercase tracking-[2px] whitespace-nowrap">
                 Seeking Feedback
               </span>
-              <div style={{ flex: 1, height: 1, background: 'var(--border-section)' }} />
+              <div className="flex-1 h-[1px] bg-section" />
             </div>
-            <p style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
+            <p className="font-sans text-[12px] text-muted mb-4">
               These members are looking for input from the community.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            <div className="grid grid-cols-4 gap-3">
               {feedbackProjects.map((project) => (
                 <Link
                   key={project.id}
                   href={`/projects/${project.id}#feedback`}
-                  className="feedback-card"
-                  style={{
-                    display: 'block',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-card)',
-                    borderRadius: 6, padding: 20,
-                    textDecoration: 'none',
-                  }}
+                  className="feedback-card block bg-surface border border-card rounded-[6px] p-5 no-underline"
                 >
-                  <div style={{ display: 'flex', gap: 9, alignItems: 'center', marginBottom: 10 }}>
+                  <div className="flex gap-[9px] items-center mb-[10px]">
                     <FbAvatar name={project.member.name} avatar={project.member.avatar} />
                     <div>
-                      <div style={{
-                        fontFamily: ff, fontSize: 10,
-                        color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: .5,
-                      }}>
+                      <div className="font-sans text-[10px] text-muted uppercase tracking-[.5px]">
                         {project.member.name}
                       </div>
-                      <div style={{
-                        fontFamily: fd, fontSize: 16, fontWeight: 500,
-                        color: 'var(--text-primary)',
-                      }}>
+                      <div className="font-display text-[16px] font-medium text-foreground">
                         {project.title}
                       </div>
                     </div>
                   </div>
-                  <p style={{
-                    fontFamily: ff, fontSize: 12,
-                    color: 'var(--text-secondary)',
-                    margin: 0, lineHeight: 1.65,
-                  }}>
+                  <p className="font-sans text-[12px] text-secondary m-0 leading-[1.65]">
                     {project.feedback_prompt || project.description}
                   </p>
-                  <span
-                    className="agora-btn"
-                    style={{
-                      display: 'inline-block', marginTop: 14,
-                      fontFamily: ff, fontSize: 11, fontWeight: 500,
-                      color: 'var(--gold)', background: 'none',
-                      border: '1px solid var(--border-card)',
-                      borderRadius: 4, padding: '6px 14px',
-                      letterSpacing: '.5px', textTransform: 'uppercase',
-                    }}
-                  >
+                  <span className="agora-btn inline-block mt-[14px] font-sans text-[11px] font-medium text-gold bg-transparent border border-card rounded px-[14px] py-1.5 tracking-[.5px] uppercase">
                     Give feedback →
                   </span>
                 </Link>

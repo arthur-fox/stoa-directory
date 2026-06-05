@@ -5,9 +5,6 @@ import Link from 'next/link';
 import MemberDetailClient from '@/components/MemberDetailClient';
 import ProjectDetailClient from '@/components/ProjectDetailClient';
 
-const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-const fd = 'var(--font-cormorant), Georgia, serif';
-
 type Route =
   | { type: 'member'; slug: string }
   | { type: 'project'; id: string }
@@ -44,26 +41,15 @@ export default function NotFound() {
   if (route?.type === 'project') return <ProjectDetailClient id={route.id} />;
 
   return (
-    <main style={{
-      minHeight: '100vh',
-      background: 'var(--bg-page)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 12,
-    }}>
-      <p style={{ fontSize: 48, margin: 0 }}>🏛️</p>
-      <h1 style={{ fontFamily: fd, fontSize: 28, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>
+    <main className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+      <p className="text-[48px] m-0">🏛️</p>
+      <h1 className="font-display text-[28px] font-normal text-foreground m-0">
         Page not found
       </h1>
-      <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+      <p className="font-sans text-[13px] text-secondary m-0">
         That page doesn&apos;t exist.
       </p>
-      <Link
-        href="/"
-        style={{ fontFamily: ff, fontSize: 12, color: 'var(--gold)', textDecoration: 'none', letterSpacing: '.3px' }}
-      >
+      <Link href="/" className="font-sans text-[12px] text-gold no-underline tracking-[.3px]">
         ← Back to directory
       </Link>
     </main>

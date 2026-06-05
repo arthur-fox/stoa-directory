@@ -12,8 +12,6 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function ProjectCard({ project, compact = false }: Props) {
-  const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-
   // Dot and text color: feedback overrides, otherwise status-based
   const dotColor = project.seekingFeedback
     ? 'var(--gold)'
@@ -29,28 +27,17 @@ export default function ProjectCard({ project, compact = false }: Props) {
 
   if (compact) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'var(--bg-chip)',
-        border: '1px solid transparent',
-        borderRadius: 3, padding: '4px 9px',
-        transition: 'border-color 0.15s',
-        gap: 6,
-      }}>
+      <div className="flex items-center justify-between bg-well border border-transparent rounded-[3px] px-[9px] py-1 transition-colors gap-1.5">
         {/* Status dot + title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, flex: 1 }}>
-          <span style={{
-            width: 5, height: 5, borderRadius: '50%',
-            background: dotColor, flexShrink: 0,
-          }} />
+        <div className="flex items-center gap-[5px] min-w-0 flex-1">
+          <span
+            className="w-[5px] h-[5px] rounded-full shrink-0"
+            style={{ background: dotColor }}
+          />
           <Link
             href={`/projects/${project.id}`}
-            style={{
-              fontFamily: ff, fontSize: 11,
-              color: chipTextColor,
-              textDecoration: 'none',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}
+            className="font-sans text-[11px] no-underline overflow-hidden text-ellipsis whitespace-nowrap"
+            style={{ color: chipTextColor }}
           >
             {project.title}
           </Link>
@@ -63,12 +50,7 @@ export default function ProjectCard({ project, compact = false }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             title={`Open ${project.title}`}
-            style={{
-              flexShrink: 0, fontSize: 11,
-              color: 'var(--text-muted)',
-              textDecoration: 'none', lineHeight: 1,
-              transition: 'color 0.15s',
-            }}
+            className="shrink-0 text-[11px] text-muted no-underline leading-none transition-colors"
           >
             ↗
           </a>
@@ -79,53 +61,33 @@ export default function ProjectCard({ project, compact = false }: Props) {
 
   // ── Full card ───────────────────────────────────────────────
   return (
-    <div style={{
-      background: 'var(--bg-chip)',
-      border: '1px solid var(--border-card)',
-      borderRadius: 6, padding: '12px 14px',
-      transition: 'border-color 0.15s, background 0.15s',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: dotColor, flexShrink: 0, marginTop: 2,
-          }} />
+    <div className="bg-well border border-card rounded-[6px] px-[14px] py-3 transition-colors">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <span
+            className="w-1.5 h-1.5 rounded-full shrink-0 mt-0.5"
+            style={{ background: dotColor }}
+          />
           <Link
             href={`/projects/${project.id}`}
-            style={{
-              fontFamily: ff, fontSize: 13, fontWeight: 500,
-              color: 'var(--text-primary)',
-              textDecoration: 'none',
-            }}
+            className="font-sans text-[13px] font-medium text-foreground no-underline"
           >
             {project.title}
           </Link>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        <div className="flex items-center gap-1.5 shrink-0">
           {project.seekingFeedback && (
             <Link
               href={`/projects/${project.id}#feedback`}
-              style={{
-                fontFamily: ff, fontSize: 10, fontWeight: 500,
-                color: 'var(--gold)',
-                background: 'none',
-                border: '1px solid var(--gold)',
-                borderRadius: 3, padding: '2px 7px',
-                letterSpacing: '.4px',
-                textDecoration: 'none',
-              }}
+              className="font-sans text-[10px] font-medium text-gold bg-transparent border border-gold rounded-[3px] px-[7px] py-[2px] tracking-[.4px] no-underline"
             >
               Feedback
             </Link>
           )}
-          <span style={{
-            fontFamily: ff, fontSize: 10,
-            color: chipTextColor,
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-card)',
-            borderRadius: 3, padding: '2px 7px',
-          }}>
+          <span
+            className="font-sans text-[10px] bg-surface border border-card rounded-[3px] px-[7px] py-[2px]"
+            style={{ color: chipTextColor }}
+          >
             {statusLabel[project.status] ?? project.status}
           </span>
           {project.url && (
@@ -134,10 +96,7 @@ export default function ProjectCard({ project, compact = false }: Props) {
               target="_blank"
               rel="noopener noreferrer"
               title={`Open ${project.title}`}
-              style={{
-                fontSize: 12, color: 'var(--text-muted)',
-                textDecoration: 'none', transition: 'color 0.15s',
-              }}
+              className="text-[12px] text-muted no-underline transition-colors"
             >
               ↗
             </a>
@@ -145,27 +104,24 @@ export default function ProjectCard({ project, compact = false }: Props) {
         </div>
       </div>
       {project.description && (
-        <p style={{
-          fontFamily: ff, fontSize: 12,
-          color: 'var(--text-secondary)',
-          margin: '8px 0 0', lineHeight: 1.6,
-          display: '-webkit-box',
-          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}>
+        <p
+          className="font-sans text-[12px] text-secondary mt-2 m-0 leading-[1.6] overflow-hidden"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
           {project.description}
         </p>
       )}
       {project.tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
+        <div className="flex flex-wrap gap-1 mt-2">
           {project.tags.map((tag) => (
-            <span key={tag} style={{
-              fontFamily: ff, fontSize: 10,
-              color: 'var(--text-muted)',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-card)',
-              borderRadius: 3, padding: '2px 7px',
-            }}>
+            <span
+              key={tag}
+              className="font-sans text-[10px] text-muted bg-surface border border-card rounded-[3px] px-[7px] py-[2px]"
+            >
               {tag}
             </span>
           ))}

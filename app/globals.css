@@ -1,11 +1,28 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Backgrounds */
   --color-background: var(--bg-page);
+  --color-surface:    var(--bg-card);
+  --color-well:       var(--bg-chip);
+  --color-skeleton:   var(--skeleton-bg);
+  --color-avatar:     var(--avatar-bg);
+  /* Text */
   --color-foreground: var(--text-primary);
-  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
-  --font-display: var(--font-cormorant), Georgia, serif;
+  --color-secondary:  var(--text-secondary);
+  --color-muted:      var(--text-muted);
+  /* Accent */
+  --color-gold:       var(--gold);
+  /* Fonts */
+  --font-sans:        var(--font-space-grotesk), system-ui, sans-serif;
+  --font-display:     var(--font-cormorant), Georgia, serif;
 }
+
+/* ─── Border-colour utilities for theme tokens ─── */
+@utility border-card    { border-color: var(--border-card); }
+@utility border-section { border-color: var(--border-section); }
+@utility border-header  { border-color: var(--border-header); }
+@utility border-avatar  { border-color: var(--avatar-border); }
 
 /* ─── Dark theme (default) ─── */
 :root,

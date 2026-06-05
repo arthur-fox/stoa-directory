@@ -12,10 +12,7 @@ function Avatar({ name, avatar }: { name: string; avatar?: string | null }) {
       <img
         src={avatar}
         alt={name}
-        style={{
-          width: 38, height: 38, borderRadius: '50%', objectFit: 'cover',
-          border: '1.5px solid var(--avatar-border)', flexShrink: 0,
-        }}
+        className="w-[38px] h-[38px] rounded-full object-cover border-[1.5px] border-avatar shrink-0"
       />
     );
   }
@@ -26,61 +23,34 @@ function Avatar({ name, avatar }: { name: string; avatar?: string | null }) {
     .slice(0, 2)
     .toUpperCase();
   return (
-    <div style={{
-      width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
-      border: '1.5px solid var(--avatar-border)',
-      background: 'var(--avatar-bg)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'var(--font-cormorant), Georgia, serif',
-      fontSize: 14, fontWeight: 500,
-      color: 'var(--avatar-text)',
-    }}>
+    <div
+      className="w-[38px] h-[38px] rounded-full shrink-0 border-[1.5px] border-avatar bg-avatar flex items-center justify-center font-display text-[14px] font-medium"
+      style={{ color: 'var(--avatar-text)' }}
+    >
       {ini}
     </div>
   );
 }
 
 export default function MemberTile({ member }: Props) {
-  const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-  const fd = 'var(--font-cormorant), Georgia, serif';
-
   const visibleProjects = member.projects
     .filter((p) => p.visibility === 'public')
     .slice(0, 3);
 
   return (
-    <div
-      className="member-card"
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-card)',
-        borderRadius: 6, padding: '18px 20px',
-        display: 'flex', flexDirection: 'column', gap: 10,
-      }}
-    >
+    <div className="member-card bg-surface border border-card rounded-[6px] px-5 py-[18px] flex flex-col gap-[10px]">
       {/* Header */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <div className="flex gap-3 items-start">
         <Avatar name={member.name} avatar={member.avatar} />
-        <div style={{ paddingTop: 2, minWidth: 0 }}>
+        <div className="pt-0.5 min-w-0">
           <Link
             href={`/members/${member.slug}`}
-            style={{
-              display: 'block',
-              fontFamily: fd, fontSize: 17, fontWeight: 500,
-              color: 'var(--text-primary)', lineHeight: 1.2,
-              textDecoration: 'none',
-            }}
-            className="member-name-link"
+            className="member-name-link block font-display text-[17px] font-medium text-foreground leading-tight no-underline"
           >
             {member.name}
           </Link>
           {member.location && (
-            <p style={{
-              fontFamily: ff, fontSize: 10,
-              color: 'var(--text-muted)', marginTop: 3,
-              textTransform: 'uppercase', letterSpacing: '.7px',
-              margin: '3px 0 0',
-            }}>
+            <p className="font-sans text-[10px] text-muted mt-[3px] uppercase tracking-[.7px] m-0">
               {member.location}
             </p>
           )}
@@ -89,27 +59,21 @@ export default function MemberTile({ member }: Props) {
 
       {/* Bio */}
       {member.bio && (
-        <p style={{
-          fontFamily: ff, fontSize: 12,
-          color: 'var(--text-secondary)',
-          margin: 0, lineHeight: 1.65,
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}>
+        <p
+          className="font-sans text-[12px] text-secondary m-0 leading-[1.65] overflow-hidden"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
           {member.bio}
         </p>
       )}
 
       {/* Projects */}
       {visibleProjects.length > 0 && (
-        <div style={{
-          borderTop: '1px solid var(--bg-chip)',
-          paddingTop: 10,
-          display: 'flex', flexDirection: 'column', gap: 5,
-          marginTop: 'auto',
-        }}>
+        <div className="border-t border-well pt-[10px] flex flex-col gap-[5px] mt-auto">
           {visibleProjects.map((project) => (
             <ProjectCard key={project.id} project={project} compact />
           ))}

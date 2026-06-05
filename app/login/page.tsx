@@ -4,9 +4,6 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import AgoraHeader from '@/components/AgoraHeader';
 
-const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-const fd = 'var(--font-cormorant), Georgia, serif';
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -31,38 +28,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-background flex flex-col">
       <AgoraHeader />
-      <main style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '40px 16px',
-      }}>
-        <div style={{ width: '100%', maxWidth: 360 }}>
-          <h1 style={{ fontFamily: fd, fontSize: 30, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 6px' }}>
+      <main className="flex-1 flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-[360px]">
+          <h1 className="font-display text-[30px] font-normal text-foreground m-0 mb-1.5">
             Member login
           </h1>
-          <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 24px', lineHeight: 1.6 }}>
+          <p className="font-sans text-[13px] text-secondary m-0 mb-6 leading-relaxed">
             Enter your email and we&apos;ll send you a magic link.
           </p>
 
           {sent ? (
-            <div style={{
-              border: '1px solid var(--gold)',
-              borderRadius: 6,
-              padding: '14px 16px',
-              background: 'var(--bg-chip)',
-              fontFamily: ff,
-              fontSize: 13,
-              color: 'var(--text-primary)',
-              lineHeight: 1.6,
-            }}>
+            <div className="border border-gold rounded-[6px] px-4 py-[14px] bg-well font-sans text-[13px] text-foreground leading-relaxed">
               Check your inbox — a login link is on its way to <strong>{email}</strong>.
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-[10px]">
               <input
                 type="email"
                 placeholder="your@email.com"
@@ -72,13 +54,12 @@ export default function LoginPage() {
                 className="agora-input"
               />
               {error && (
-                <p style={{ fontFamily: ff, fontSize: 12, color: '#c0392b', margin: 0 }}>{error}</p>
+                <p className="font-sans text-[12px] m-0" style={{ color: '#c0392b' }}>{error}</p>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className="agora-btn-primary"
-                style={{ marginTop: 4 }}
+                className="agora-btn-primary mt-1"
               >
                 {loading ? 'Sending…' : 'Send magic link'}
               </button>

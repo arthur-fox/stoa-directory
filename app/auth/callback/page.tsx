@@ -4,8 +4,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-
 export default function AuthCallbackPage() {
   const router = useRouter();
 
@@ -20,16 +18,10 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   return (
-    <main style={{
-      minHeight: '100vh',
-      background: 'var(--bg-page)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      <div style={{ textAlign: 'center' }}>
-        <div className="agora-spinner" style={{ margin: '0 auto 16px' }} />
-        <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)' }}>
+    <main className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center">
+        <div className="agora-spinner mx-auto mb-4" />
+        <p className="font-sans text-[13px] text-secondary">
           Signing you in…
         </p>
       </div>

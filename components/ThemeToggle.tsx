@@ -6,26 +6,8 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="agora-btn"
+      className="agora-btn font-sans text-[11px] font-medium text-gold bg-transparent border border-card rounded px-3 py-2 cursor-pointer tracking-[.5px] uppercase flex items-center gap-1.5 shrink-0"
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-      style={{
-        fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif',
-        fontSize: 11,
-        fontWeight: 500,
-        color: 'var(--gold)',
-        background: 'none',
-        border: '1px solid var(--border-card)',
-        borderRadius: 4,
-        padding: '8px 12px',
-        cursor: 'pointer',
-        letterSpacing: '.5px',
-        textTransform: 'uppercase',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        transition: 'all .2s',
-        flexShrink: 0,
-      }}
     >
       {theme === 'dark' ? '☀ Day' : '◑ Night'}
     </button>

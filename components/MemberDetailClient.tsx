@@ -7,9 +7,6 @@ import { Member } from '@/lib/types';
 import ProjectCard from '@/components/ProjectCard';
 import AgoraHeader from '@/components/AgoraHeader';
 
-const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-const fd = 'var(--font-cormorant), Georgia, serif';
-
 function toMember(row: Record<string, unknown>): Member {
   const projects = ((row.projects as Record<string, unknown>[]) ?? [])
     .sort((a, b) => ((a.position as number) ?? 0) - ((b.position as number) ?? 0))
@@ -60,10 +57,10 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      <div className="min-h-screen bg-background flex flex-col">
         <AgoraHeader />
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px', width: '100%' }}>
-          <div className="agora-card" style={{ height: 200, opacity: 0.5 }} />
+        <div className="max-w-[720px] mx-auto px-6 py-12 w-full">
+          <div className="agora-card h-[200px] opacity-50" />
         </div>
       </div>
     );
@@ -71,13 +68,13 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
 
   if (!member) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      <div className="min-h-screen bg-background flex flex-col">
         <AgoraHeader />
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px', width: '100%' }}>
-          <Link href="/" style={{ fontFamily: ff, fontSize: 13, color: 'var(--gold)', textDecoration: 'none' }}>
+        <div className="max-w-[720px] mx-auto px-6 py-12 w-full">
+          <Link href="/" className="font-sans text-[13px] text-gold no-underline">
             ← Back to directory
           </Link>
-          <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', marginTop: 32 }}>
+          <p className="font-sans text-[13px] text-secondary mt-8">
             Member not found.
           </p>
         </div>
@@ -91,59 +88,57 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
   const initials = member.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-background flex flex-col">
       <AgoraHeader />
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px', width: '100%' }}>
+      <div className="max-w-[720px] mx-auto px-6 py-10 w-full">
 
-        <Link href="/" style={{ fontFamily: ff, fontSize: 12, color: 'var(--gold)', textDecoration: 'none', letterSpacing: '.3px' }}>
+        <Link href="/" className="font-sans text-[12px] text-gold no-underline tracking-[.3px]">
           ← Directory
         </Link>
 
         {/* Profile card */}
-        <div className="agora-card" style={{ padding: 32, marginTop: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
+        <div className="agora-card p-8 mt-5">
+          <div className="flex items-start gap-5">
             {member.avatar ? (
               <img
                 src={member.avatar}
                 alt={member.name}
-                style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--avatar-border)', flexShrink: 0 }}
+                className="w-16 h-16 rounded-full object-cover border-[1.5px] border-avatar shrink-0"
               />
             ) : (
-              <div style={{
-                width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
-                background: 'var(--avatar-bg)', border: '1.5px solid var(--avatar-border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: fd, fontSize: 22, fontWeight: 500, color: 'var(--avatar-text)',
-              }}>
+              <div
+                className="w-16 h-16 rounded-full shrink-0 bg-avatar border-[1.5px] border-avatar flex items-center justify-center font-display text-[22px] font-medium"
+                style={{ color: 'var(--avatar-text)' }}
+              >
                 {initials}
               </div>
             )}
             <div>
-              <h1 style={{ fontFamily: fd, fontSize: 26, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>
+              <h1 className="font-display text-[26px] font-normal text-foreground m-0">
                 {member.name}
               </h1>
               {member.location && (
-                <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: '.6px' }}>
+                <p className="font-sans text-[11px] text-muted mt-1 m-0 uppercase tracking-[.6px]">
                   {member.location}
                 </p>
               )}
               {(member.social.website || member.social.twitter || member.social.linkedin) && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10 }}>
+                <div className="flex flex-wrap gap-3 mt-[10px]">
                   {member.social.website && (
                     <a href={member.social.website} target="_blank" rel="noopener noreferrer"
-                      style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                      className="font-sans text-[12px] text-secondary no-underline">
                       Website ↗
                     </a>
                   )}
                   {member.social.twitter && (
                     <a href={`https://twitter.com/${member.social.twitter}`} target="_blank" rel="noopener noreferrer"
-                      style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                      className="font-sans text-[12px] text-secondary no-underline">
                       Twitter ↗
                     </a>
                   )}
                   {member.social.linkedin && (
                     <a href={`https://linkedin.com/in/${member.social.linkedin}`} target="_blank" rel="noopener noreferrer"
-                      style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                      className="font-sans text-[12px] text-secondary no-underline">
                       LinkedIn ↗
                     </a>
                   )}
@@ -153,21 +148,15 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
           </div>
 
           {member.bio && (
-            <p style={{ fontFamily: ff, fontSize: 14, color: 'var(--text-secondary)', marginTop: 20, lineHeight: 1.7 }}>
+            <p className="font-sans text-[14px] text-secondary mt-5 leading-[1.7]">
               {member.bio}
             </p>
           )}
 
           {member.tags.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
+            <div className="flex flex-wrap gap-1.5 mt-[14px]">
               {member.tags.map((tag) => (
-                <span key={tag} style={{
-                  border: '1px solid var(--border-card)',
-                  borderRadius: 20,
-                  padding: '3px 10px',
-                  fontFamily: ff, fontSize: 11,
-                  color: 'var(--text-muted)',
-                }}>
+                <span key={tag} className="border border-card rounded-full px-[10px] py-[3px] font-sans text-[11px] text-muted">
                   {tag}
                 </span>
               ))}
@@ -177,11 +166,11 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
 
         {/* Projects */}
         {visibleProjects.length > 0 && (
-          <div style={{ marginTop: 28 }}>
-            <h2 style={{ fontFamily: fd, fontSize: 20, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+          <div className="mt-7">
+            <h2 className="font-display text-[20px] font-normal text-foreground m-0 mb-[14px]">
               Projects
             </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="flex flex-col gap-[10px]">
               {visibleProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}

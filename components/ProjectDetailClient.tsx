@@ -5,9 +5,6 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import AgoraHeader from '@/components/AgoraHeader';
 
-const ff = 'var(--font-space-grotesk), system-ui, sans-serif';
-const fd = 'var(--font-cormorant), Georgia, serif';
-
 interface ProjectDetail {
   id: string;
   title: string;
@@ -122,10 +119,10 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      <div className="min-h-screen bg-background flex flex-col">
         <AgoraHeader />
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px 24px', width: '100%' }}>
-          <div className="agora-card" style={{ height: 200, opacity: 0.5 }} />
+        <div className="max-w-[640px] mx-auto px-6 py-12 w-full">
+          <div className="agora-card h-[200px] opacity-50" />
         </div>
       </div>
     );
@@ -133,11 +130,11 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
   if (!project) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      <div className="min-h-screen bg-background flex flex-col">
         <AgoraHeader />
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px 24px', width: '100%' }}>
-          <Link href="/" style={{ fontFamily: ff, fontSize: 13, color: 'var(--gold)', textDecoration: 'none' }}>← Directory</Link>
-          <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', marginTop: 32 }}>Project not found.</p>
+        <div className="max-w-[640px] mx-auto px-6 py-12 w-full">
+          <Link href="/" className="font-sans text-[13px] text-gold no-underline">← Directory</Link>
+          <p className="font-sans text-[13px] text-secondary mt-8">Project not found.</p>
         </div>
       </div>
     );
@@ -146,39 +143,38 @@ export default function ProjectDetailClient({ id }: { id: string }) {
   const isOwner = !!myMemberId && myMemberId === project.member?.id;
   const canGiveFeedback = loggedIn && !isOwner && project.seeking_feedback && !!myMemberId;
 
-  const statusLabel = project.status === 'live' ? 'Live' : 'WIP';
   const statusColor = project.status === 'live' ? '#4ade80' : '#fbbf24';
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-background flex flex-col">
       <AgoraHeader />
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 24px', width: '100%' }}>
+      <div className="max-w-[640px] mx-auto px-6 py-10 w-full">
 
         {project.member && (
           <Link
             href={`/members/${project.member.slug}`}
-            style={{ fontFamily: ff, fontSize: 12, color: 'var(--gold)', textDecoration: 'none', letterSpacing: '.3px' }}
+            className="font-sans text-[12px] text-gold no-underline tracking-[.3px]"
           >
             ← {project.member.name}
           </Link>
         )}
 
         {/* Project card */}
-        <div className="agora-card" style={{ padding: 32, marginTop: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{ fontFamily: fd, fontSize: 26, fontWeight: 400, color: 'var(--text-primary)', margin: 0 }}>
+        <div className="agora-card p-8 mt-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="font-display text-[26px] font-normal text-foreground m-0">
                 {project.title}
               </h1>
               {project.member && (
                 <Link
                   href={`/members/${project.member.slug}`}
-                  style={{ fontFamily: ff, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6 }}
+                  className="font-sans text-[12px] text-muted no-underline inline-flex items-center gap-1.5 mt-1.5"
                 >
                   {project.member.avatar ? (
-                    <img src={project.member.avatar} alt={project.member.name} style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={project.member.avatar} alt={project.member.name} className="w-4 h-4 rounded-full object-cover" />
                   ) : (
-                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--avatar-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: 'var(--avatar-text)', fontFamily: fd }}>
+                    <div className="w-4 h-4 rounded-full bg-avatar flex items-center justify-center text-[8px] font-display" style={{ color: 'var(--avatar-text)' }}>
                       {project.member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                   )}
@@ -186,28 +182,24 @@ export default function ProjectDetailClient({ id }: { id: string }) {
                 </Link>
               )}
             </div>
-            <span style={{
-              fontFamily: ff, fontSize: 10, fontWeight: 600, letterSpacing: '.6px', textTransform: 'uppercase',
-              color: statusColor, border: `1px solid ${statusColor}`, borderRadius: 20,
-              padding: '3px 10px', flexShrink: 0, opacity: 0.85,
-            }}>
-              {statusLabel}
+            <span
+              className="font-sans text-[10px] font-semibold tracking-[.6px] uppercase rounded-full px-[10px] py-[3px] shrink-0"
+              style={{ color: statusColor, border: `1px solid ${statusColor}`, opacity: 0.85 }}
+            >
+              {project.status === 'live' ? 'Live' : 'WIP'}
             </span>
           </div>
 
           {project.description && (
-            <p style={{ fontFamily: ff, fontSize: 14, color: 'var(--text-secondary)', marginTop: 16, lineHeight: 1.7 }}>
+            <p className="font-sans text-[14px] text-secondary mt-4 leading-[1.7]">
               {project.description}
             </p>
           )}
 
           {project.tags.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
+            <div className="flex flex-wrap gap-1.5 mt-[14px]">
               {project.tags.map(tag => (
-                <span key={tag} style={{
-                  border: '1px solid var(--border-card)', borderRadius: 20,
-                  padding: '3px 10px', fontFamily: ff, fontSize: 11, color: 'var(--text-muted)',
-                }}>
+                <span key={tag} className="border border-card rounded-full px-[10px] py-[3px] font-sans text-[11px] text-muted">
                   {tag}
                 </span>
               ))}
@@ -219,8 +211,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="agora-btn-primary"
-              style={{ display: 'inline-flex', textDecoration: 'none', marginTop: 24 }}
+              className="agora-btn-primary inline-flex no-underline mt-6"
             >
               Visit project ↗
             </a>
@@ -229,26 +220,21 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Feedback form */}
         {canGiveFeedback && (
-          <div id="feedback" className="agora-card" style={{ padding: 24, marginTop: 16 }}>
-            <h2 style={{ fontFamily: fd, fontSize: 20, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 12px' }}>
+          <div id="feedback" className="agora-card p-6 mt-4">
+            <h2 className="font-display text-[20px] font-normal text-foreground m-0 mb-3">
               Give feedback
             </h2>
             {project.feedback_prompt && (
-              <p style={{
-                fontFamily: ff, fontSize: 13, fontStyle: 'italic',
-                color: 'var(--text-secondary)', lineHeight: 1.6,
-                background: 'var(--bg-chip)', border: '1px solid var(--border-section)',
-                borderRadius: 6, padding: '10px 14px', margin: '0 0 16px',
-              }}>
+              <p className="font-sans text-[13px] italic text-secondary leading-[1.6] bg-well border border-section rounded-[6px] px-[14px] py-[10px] m-0 mb-4">
                 &ldquo;{project.feedback_prompt}&rdquo;
               </p>
             )}
             {submitted ? (
-              <p style={{ fontFamily: ff, fontSize: 13, color: '#4ade80' }}>✓ Feedback sent — thank you!</p>
+              <p className="font-sans text-[13px]" style={{ color: '#4ade80' }}>✓ Feedback sent — thank you!</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="flex flex-col gap-[10px]">
                 <div>
-                  <label style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+                  <label className="font-sans text-[11px] text-muted block mb-1 uppercase tracking-[.5px]">
                     Category
                   </label>
                   <select value={category} onChange={e => setCategory(e.target.value)} className="agora-input">
@@ -258,7 +244,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+                  <label className="font-sans text-[11px] text-muted block mb-1 uppercase tracking-[.5px]">
                     Your feedback
                   </label>
                   <textarea
@@ -273,8 +259,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
                 <button
                   onClick={submitFeedback}
                   disabled={submitting || !content.trim()}
-                  className="agora-btn-primary"
-                  style={{ alignSelf: 'flex-end' }}
+                  className="agora-btn-primary self-end"
                 >
                   {submitting ? 'Sending…' : 'Send feedback'}
                 </button>
@@ -285,31 +270,28 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Feedback received — owner only */}
         {isOwner && receivedFeedback.length > 0 && (
-          <div className="agora-card" style={{ padding: 24, marginTop: 16 }}>
-            <h2 style={{ fontFamily: fd, fontSize: 20, fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 16px' }}>
+          <div className="agora-card p-6 mt-4">
+            <h2 className="font-display text-[20px] font-normal text-foreground m-0 mb-4">
               Feedback received
             </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="flex flex-col gap-[10px]">
               {receivedFeedback.map(fb => (
-                <div key={fb.id} className="agora-chip-row" style={{ padding: '12px 14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                    <span style={{
-                      fontFamily: ff, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px',
-                      color: 'var(--gold)', border: '1px solid var(--gold)', borderRadius: 20, padding: '2px 8px', opacity: 0.85,
-                    }}>
+                <div key={fb.id} className="agora-chip-row px-[14px] py-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="font-sans text-[10px] font-semibold uppercase tracking-[.5px] text-gold border border-gold rounded-full px-2 py-[2px] opacity-85">
                       {CATEGORY_LABELS[fb.category] ?? fb.category}
                     </span>
-                    <span style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)' }}>
+                    <span className="font-sans text-[11px] text-muted">
                       {new Date(fb.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                  <p className="font-sans text-[13px] text-secondary m-0 leading-[1.6]">
                     {fb.content}
                   </p>
                   {fb.from_member && (
-                    <p style={{ fontFamily: ff, fontSize: 11, color: 'var(--text-muted)', margin: '8px 0 0' }}>
+                    <p className="font-sans text-[11px] text-muted mt-2 m-0">
                       from{' '}
-                      <Link href={`/members/${fb.from_member.slug}`} style={{ color: 'var(--gold)', textDecoration: 'none' }}>
+                      <Link href={`/members/${fb.from_member.slug}`} className="text-gold no-underline">
                         {fb.from_member.name}
                       </Link>
                     </p>
@@ -322,10 +304,10 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
         {/* Logged-out prompt */}
         {!loggedIn && project.seeking_feedback && (
-          <div className="agora-chip-row" style={{ padding: '16px 20px', marginTop: 16, textAlign: 'center' }}>
-            <p style={{ fontFamily: ff, fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+          <div className="agora-chip-row px-5 py-4 mt-4 text-center">
+            <p className="font-sans text-[13px] text-secondary m-0">
               This project is seeking feedback from Stoa members.{' '}
-              <Link href="/login" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>
+              <Link href="/login" className="text-gold no-underline font-medium">
                 Log in to give feedback →
               </Link>
             </p>

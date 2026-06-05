@@ -8,22 +8,14 @@ interface Props {
 export default function MemberGrid({ members }: Props) {
   if (members.length === 0) {
     return (
-      <p style={{
-        padding: '96px 0', textAlign: 'center',
-        fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif',
-        color: 'var(--text-muted)', fontSize: 14,
-      }}>
+      <p className="py-24 text-center font-sans text-[14px] text-muted">
         No members to display.
       </p>
     );
   }
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
-      gap: 12,
-    }}>
+    <div className="grid grid-cols-4 gap-3">
       {members.map((member) => (
         <MemberTile key={member.id} member={member} />
       ))}
