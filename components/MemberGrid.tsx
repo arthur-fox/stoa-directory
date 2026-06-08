@@ -15,7 +15,7 @@ export default function MemberGrid({ members }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-3 items-stretch">
+    <div className="grid grid-cols-4 gap-3 items-stretch" style={{ gridAutoRows: 'minmax(260px, auto)' }}>
       {members.map((member) => (
         <MemberTile key={member.id} member={member} />
       ))}
