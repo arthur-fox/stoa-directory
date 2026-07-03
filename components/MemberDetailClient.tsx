@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Member } from '@/lib/types';
 import ProjectCard from '@/components/ProjectCard';
 import AgoraHeader from '@/components/AgoraHeader';
+import { safeUrl } from '@/lib/utils';
 
 function toMember(row: Record<string, unknown>): Member {
   const projects = ((row.projects as Record<string, unknown>[]) ?? [])
@@ -125,7 +126,7 @@ export default function MemberDetailClient({ slug }: { slug: string }) {
               {(member.social.website || member.social.twitter || member.social.linkedin) && (
                 <div className="flex flex-wrap gap-3 mt-[10px]">
                   {member.social.website && (
-                    <a href={member.social.website} target="_blank" rel="noopener noreferrer"
+                    <a href={safeUrl(member.social.website)} target="_blank" rel="noopener noreferrer"
                       className="font-sans text-[12px] text-secondary no-underline">
                       Website ↗
                     </a>

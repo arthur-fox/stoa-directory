@@ -153,7 +153,7 @@ export default function DashboardPage() {
     setSaving(true);
     await supabase
       .from('members')
-      .update({ bio: member.bio, location: member.location, social: member.social, visibility: member.visibility })
+      .update({ bio: member.bio, location: member.location, social: { ...member.social, website: member.social.website ? safeUrl(member.social.website) : undefined }, visibility: member.visibility })
       .eq('id', member.id);
     await supabase.rpc('bump_listed_at');
     setSaving(false);
