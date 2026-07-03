@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Member, Project } from '@/lib/types';
+import { safeUrl } from '@/lib/utils';
 
 export interface ProjectListItem {
   project: Project;
@@ -88,7 +89,7 @@ export default function ProjectGrid({ items }: Props) {
               <div className="flex w-5 justify-end">
                 {project.url && (
                   <a
-                    href={project.url}
+                    href={safeUrl(project.url!)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex h-5 w-5 items-center justify-center text-muted hover:text-foreground transition-colors"

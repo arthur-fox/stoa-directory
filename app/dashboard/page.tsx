@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import AgoraHeader from '@/components/AgoraHeader';
+import { safeUrl } from '@/lib/utils';
 
 interface Project {
   id: string;
@@ -165,7 +166,7 @@ export default function DashboardPage() {
     await supabase.from('projects').update({
       title: project.title,
       description: project.description,
-      url: project.url || null,
+      url: project.url ? safeUrl(project.url) : null,
       status: project.status,
       visibility: project.visibility,
       seeking_feedback: project.seeking_feedback,
@@ -182,7 +183,7 @@ export default function DashboardPage() {
       member_id:        member.id,
       title:            newProject.title,
       description:      newProject.description,
-      url:              newProject.url || null,
+      url:              newProject.url ? safeUrl(newProject.url) : null,
       status:           newProject.status,
       visibility:       newProject.visibility,
       seeking_feedback: newProject.seeking_feedback,

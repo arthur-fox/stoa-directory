@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Project } from '@/lib/types';
+import { safeUrl } from '@/lib/utils';
 
 interface Props {
   project: Project;
@@ -56,7 +57,7 @@ export default function ProjectCard({ project, compact = false }: Props) {
           )}
           {project.url && (
             <a
-              href={project.url}
+              href={safeUrl(project.url!)}
               target="_blank"
               rel="noopener noreferrer"
               title={`Open ${project.title}`}
@@ -103,7 +104,7 @@ export default function ProjectCard({ project, compact = false }: Props) {
           </span>
           {project.url && (
             <a
-              href={project.url}
+              href={safeUrl(project.url!)}
               target="_blank"
               rel="noopener noreferrer"
               title={`Open ${project.title}`}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import AgoraHeader from '@/components/AgoraHeader';
+import { safeUrl } from '@/lib/utils';
 
 interface ProjectDetail {
   id: string;
@@ -208,7 +209,7 @@ export default function ProjectDetailClient({ id }: { id: string }) {
 
           {project.url && (
             <a
-              href={project.url}
+              href={safeUrl(project.url!)}
               target="_blank"
               rel="noopener noreferrer"
               className="agora-btn-primary inline-flex no-underline mt-6"
